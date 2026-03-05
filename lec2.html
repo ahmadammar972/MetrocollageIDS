@@ -1,0 +1,2396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Introduction to Data Science – Lecture 2 | Metro College of Technology</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-deep:   #04090f;
+      --bg-mid:    #0a1628;
+      --slide-bg:  #ffffff;
+      --ink:       #0d1b2a;
+      --muted:     #5a6a7e;
+      --soft:      #dde4ed;
+      --soft2:     #f4f7fb;
+      --accent:    #c1121f;   /* crimson red */
+      --accent2:   #e63946;
+      --gold:      #f4a011;
+      --teal:      #0096a0;
+      --radius:    22px;
+      --shadow:    0 30px 70px rgba(0,0,0,.55);
+      --mono:      'JetBrains Mono', monospace;
+      --sans:      'DM Sans', system-ui, sans-serif;
+      --serif:     'DM Serif Display', Georgia, serif;
+      --scale:     1;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body {
+      font-family: var(--sans);
+      background:
+        radial-gradient(ellipse 1600px 900px at 15% 10%, rgba(193,18,31,.18) 0%, transparent 55%),
+        radial-gradient(ellipse 1400px 800px at 90% 80%, rgba(0,150,160,.12) 0%, transparent 55%),
+        linear-gradient(160deg, var(--bg-deep) 0%, var(--bg-mid) 100%);
+      color: #e0e8f0;
+      overflow: hidden;
+    }
+
+    /* ── PROGRESS BAR ── */
+    #progress-container { position:fixed; top:0; left:0; width:100%; height:5px; background:rgba(255,255,255,.07); z-index:9999; }
+    #progress-bar { height:100%; width:0%; background:linear-gradient(90deg,var(--accent),var(--gold)); transition:width .3s ease; }
+
+    /* ── LASER ── */
+    #laser { position:fixed; top:0; left:0; width:14px; height:14px; background:var(--accent2); border-radius:50%; pointer-events:none; z-index:99999; display:none; transform:translate(-50%,-50%); box-shadow:0 0 10px 3px var(--accent2),0 0 24px 8px rgba(230,57,70,.4); }
+    body.laser-on { cursor:none; }
+    body.laser-on #laser { display:block; }
+
+    /* ── CONFETTI ── */
+    #confetti-canvas { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:99998; }
+
+    /* ── STAGE & DECK ── */
+    .stage { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; padding:18px; }
+    .deck-wrap { width:1600px; height:900px; transform:scale(var(--scale)); transform-origin:center center; position:relative; }
+    .deck { width:100%; height:100%; position:relative; }
+
+    /* ── SLIDES ── */
+    .slide {
+      width:100%; height:100%;
+      background:var(--slide-bg);
+      color:var(--ink);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      position:absolute; inset:0;
+      display:none; overflow:hidden;
+      padding:48px 64px 70px;
+      animation:slideIn .3s ease;
+    }
+    .slide.active { display:block; }
+    @keyframes slideIn { from{opacity:0;transform:translateY(16px) scale(.985)} to{opacity:1;transform:translateY(0) scale(1)} }
+
+    /* accent corners */
+    .slide::before, .slide::after { content:""; position:absolute; pointer-events:none; z-index:0; }
+    .slide::before { top:0; left:0; width:220px; height:220px;
+      background:linear-gradient(135deg,rgba(193,18,31,.9),rgba(230,57,70,.4));
+      clip-path:polygon(0 0,100% 0,0 100%); }
+    .slide::after { bottom:0; right:0; width:180px; height:180px;
+      background:linear-gradient(315deg,rgba(0,150,160,.85),rgba(0,150,160,.3));
+      clip-path:polygon(100% 100%,100% 0,0 100%); }
+
+    /* section-break slides */
+    .slide.section-break { background:linear-gradient(135deg,var(--bg-deep) 0%,var(--bg-mid) 100%); color:#fff; }
+    .slide.section-break::before { background:linear-gradient(135deg,rgba(193,18,31,.6),transparent 70%); }
+    .slide.section-break::after  { background:linear-gradient(315deg,rgba(0,150,160,.5),transparent 70%); }
+    .slide.section-break h1 { color:#fff; }
+    .slide.section-break .muted { color:rgba(255,255,255,.55); }
+    .slide.section-break .slide-footer { color:rgba(255,255,255,.4); }
+
+    /* ── SLIDE-TOP ── */
+    .slide-top { position:relative; z-index:2; display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:20px; }
+    .meta .course { font-weight:800; letter-spacing:.05em; text-transform:uppercase; font-size:14px; color:var(--ink); }
+    .meta .sub    { font-size:13px; color:var(--muted); margin-top:2px; }
+    .section-break .meta .course { color:#fff; }
+
+    /* ── TYPOGRAPHY ── */
+    h1 { font-family:var(--serif); font-size:64px; line-height:1.05; letter-spacing:-.5px; position:relative; z-index:2; color:var(--ink); }
+    h2 { font-family:var(--serif); font-size:42px; line-height:1.1; letter-spacing:-.3px; position:relative; z-index:2;
+         border-bottom:3px solid var(--accent); padding-bottom:10px; display:inline-block; margin-bottom:20px; }
+    h3 { font-size:22px; font-weight:700; position:relative; z-index:2; margin-bottom:8px; color:var(--ink); }
+    p, li { font-size:19px; line-height:1.65; color:var(--ink); position:relative; z-index:2; }
+    ul { padding-left:22px; }
+    li { margin-bottom:6px; }
+
+    .pill { display:inline-block; border:1px solid var(--soft); background:var(--soft2); border-radius:999px; padding:5px 14px; font-size:13px; color:var(--muted); font-family:var(--mono); white-space:nowrap; position:relative; z-index:2; }
+    .section-break .pill { background:rgba(255,255,255,.1); border-color:rgba(255,255,255,.2); color:rgba(255,255,255,.7); }
+
+    /* ── LAYOUT ── */
+    .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:24px; position:relative; z-index:2; align-items:start; }
+    .grid-3 { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; position:relative; z-index:2; }
+    .grid-5 { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; position:relative; z-index:2; }
+
+    /* ── CARDS ── */
+    .card { background:var(--soft2); border:1px solid var(--soft); border-radius:16px; padding:20px; position:relative; z-index:2; }
+    .info-card { background:#fff; border:1px solid var(--soft); border-left:5px solid var(--accent); border-radius:14px; padding:16px 20px; transition:transform .15s,box-shadow .15s; cursor:default; }
+    .info-card:hover { transform:translateY(-3px); box-shadow:0 10px 24px rgba(0,0,0,.09); }
+
+    .callout { border-left:6px solid var(--accent); padding:16px 22px; background:#fff8f8; border-radius:14px; position:relative; z-index:2; }
+    .callout-teal { border-left-color:var(--teal); background:#f0fafe; }
+    .callout-gold  { border-left-color:var(--gold);  background:#fffbf0; }
+
+    /* ── TABLES ── */
+    table { width:100%; border-collapse:separate; border-spacing:0; border-radius:16px; border:1px solid var(--soft); margin-top:14px; position:relative; z-index:2; background:#fff; overflow:hidden; }
+    th, td { padding:13px 18px; text-align:left; border-bottom:1px solid var(--soft); font-size:17px; vertical-align:top; }
+    th { background:var(--ink); color:#fff; font-weight:700; }
+    tr:last-child td { border-bottom:none; }
+    tr:nth-child(even) td { background:var(--soft2); }
+
+    /* ── FOOTER ── */
+    .slide-footer { position:absolute; left:64px; right:64px; bottom:22px; display:flex; align-items:center; justify-content:space-between; color:var(--muted); font-size:13px; z-index:2; }
+    .slide-no { font-family:var(--mono); background:var(--soft2); border:1px solid var(--soft); padding:5px 12px; border-radius:999px; }
+    .section-break .slide-footer { color:rgba(255,255,255,.4); }
+    .section-break .slide-no { background:rgba(255,255,255,.1); border-color:rgba(255,255,255,.2); color:rgba(255,255,255,.6); }
+
+    /* ── CONTROLS ── */
+    .controls { position:fixed; right:18px; bottom:18px; z-index:10000; display:flex; gap:10px; align-items:center; }
+    .iconbtn { width:44px; height:44px; border-radius:999px; border:1px solid rgba(255,255,255,.18); background:rgba(10,22,40,.5); color:#e5e7eb; display:grid; place-items:center; cursor:pointer; backdrop-filter:blur(10px); transition:transform .12s,background .12s; user-select:none; }
+    .iconbtn:hover { transform:translateY(-2px); background:rgba(10,22,40,.8); }
+    .iconbtn:disabled { opacity:.4; cursor:not-allowed; transform:none; }
+    .iconbtn svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:2.4; stroke-linecap:round; stroke-linejoin:round; }
+
+    /* ── FRAGMENT ANIMATION ── */
+    .fragment { opacity:0; transform:translateY(14px); transition:all .4s ease; }
+    .fragment.visible { opacity:1; transform:translateY(0); }
+
+    /* ── ANALYTICS TYPE CARDS ── */
+    .analytics-card { border-radius:18px; border:2px solid var(--soft); background:#fff; padding:18px; display:flex; flex-direction:column; gap:8px; transition:all .25s ease; cursor:pointer; position:relative; z-index:2; }
+    .analytics-card:hover { transform:translateY(-4px); box-shadow:0 14px 30px rgba(0,0,0,.12); }
+    .analytics-card.selected { border-color:var(--accent); box-shadow:0 0 0 3px rgba(193,18,31,.2); }
+    .analytics-icon { font-size:36px; }
+    .analytics-title { font-weight:800; font-size:18px; }
+    .analytics-question { font-size:14px; font-family:var(--mono); color:var(--accent); font-weight:700; background:rgba(193,18,31,.07); padding:4px 10px; border-radius:999px; display:inline-block; }
+    .analytics-detail { font-size:15px; color:var(--muted); line-height:1.5; display:none; }
+    .analytics-card.selected .analytics-detail { display:block; }
+
+    /* ── TAB SYSTEM for Benefits ── */
+    .benefit-tabs { display:flex; gap:0; border-radius:14px; overflow:hidden; border:1px solid var(--soft); margin-bottom:18px; position:relative; z-index:2; }
+    .benefit-tab { flex:1; padding:14px; text-align:center; font-weight:700; font-size:17px; cursor:pointer; background:var(--soft2); border:none; color:var(--muted); transition:all .2s; border-right:1px solid var(--soft); }
+    .benefit-tab:last-child { border-right:none; }
+    .benefit-tab:hover { background:#fff; color:var(--ink); }
+    .benefit-tab.active { background:var(--accent); color:#fff; }
+    .benefit-content { display:none; position:relative; z-index:2; }
+    .benefit-content.active { display:block; }
+
+    /* ── QUIZ ACTIVITY ── */
+    .quiz-option { border:2px solid var(--soft); border-radius:14px; padding:14px 20px; margin-bottom:10px; cursor:pointer; font-size:17px; background:#fff; transition:all .2s; position:relative; z-index:2; display:flex; align-items:center; gap:12px; }
+    .quiz-option:hover { border-color:var(--accent); background:rgba(193,18,31,.04); }
+    .quiz-option.correct { border-color:#16a34a; background:#f0fdf4; color:#15803d; }
+    .quiz-option.wrong   { border-color:#dc2626; background:#fef2f2; color:#dc2626; }
+    .quiz-feedback { font-size:18px; font-weight:700; padding:12px 20px; border-radius:12px; margin-top:10px; display:none; position:relative; z-index:2; }
+    .quiz-feedback.show { display:block; }
+    .quiz-feedback.correct { background:#f0fdf4; color:#15803d; border:1px solid #86efac; }
+    .quiz-feedback.wrong   { background:#fef2f2; color:#dc2626; border:1px solid #fca5a5; }
+
+    /* ── SCENARIO BOARD (Class Exercise) ── */
+    .scenario-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; position:relative; z-index:2; }
+    .scenario-card { border:2px solid var(--soft); border-radius:16px; padding:20px; background:#fff; cursor:pointer; transition:all .25s; }
+    .scenario-card:hover { border-color:var(--accent); transform:translateY(-3px); box-shadow:0 12px 28px rgba(0,0,0,.1); }
+    .scenario-card.revealed { border-color:var(--teal); background:linear-gradient(135deg,#f0fafe,#fff); }
+    .scenario-label { font-size:13px; font-family:var(--mono); font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--accent); margin-bottom:8px; }
+    .scenario-title { font-weight:800; font-size:18px; margin-bottom:6px; }
+    .scenario-body { font-size:15px; color:var(--muted); display:none; }
+    .scenario-card.revealed .scenario-body { display:block; }
+    .scenario-icon { font-size:28px; float:right; }
+
+    /* ── DRAG MATCH ACTIVITY ── */
+    .match-area { display:grid; grid-template-columns:1fr 40px 1fr; gap:14px; align-items:start; position:relative; z-index:2; }
+    .match-col { display:flex; flex-direction:column; gap:10px; }
+    .match-item { border:2px solid var(--soft); border-radius:12px; padding:12px 16px; background:#fff; font-size:16px; font-weight:600; cursor:pointer; transition:all .2s; user-select:none; }
+    .match-item:hover { border-color:var(--accent); }
+    .match-item.selected { border-color:var(--accent); background:rgba(193,18,31,.06); }
+    .match-item.matched { border-color:#16a34a; background:#f0fdf4; cursor:default; }
+    .match-connector { display:flex; flex-direction:column; gap:10px; align-items:center; justify-content:flex-start; padding-top:6px; }
+
+    /* ── TIMELINE ── */
+    .timeline { border-left:4px solid var(--soft); padding-left:28px; margin-left:14px; position:relative; z-index:2; }
+    .timeline-item { position:relative; margin-bottom:24px; }
+    .timeline-item::before { content:''; position:absolute; left:-39px; top:4px; width:16px; height:16px; border-radius:50%; background:#fff; border:4px solid var(--accent); }
+    .tl-label { display:inline-block; font-weight:800; color:#fff; background:var(--accent); padding:3px 12px; border-radius:999px; font-size:15px; margin-bottom:6px; }
+    .tl-body { background:var(--soft2); border:1px solid var(--soft); border-radius:12px; padding:12px 18px; font-size:16px; }
+
+    /* ── STAT BADGE ── */
+    .stat-badge { text-align:center; padding:20px; background:#fff; border:1px solid var(--soft); border-radius:18px; position:relative; z-index:2; }
+    .stat-num { font-family:var(--serif); font-size:52px; color:var(--accent); line-height:1; }
+    .stat-label { font-size:15px; color:var(--muted); margin-top:4px; }
+
+    /* ── PILL TAGS ── */
+    .tag { display:inline-block; padding:4px 12px; border-radius:999px; font-size:13px; font-weight:700; margin:3px; }
+    .tag-red  { background:rgba(193,18,31,.1); color:var(--accent); border:1px solid rgba(193,18,31,.2); }
+    .tag-teal { background:rgba(0,150,160,.1); color:var(--teal); border:1px solid rgba(0,150,160,.2); }
+    .tag-gold { background:rgba(244,160,17,.1); color:#b37400; border:1px solid rgba(244,160,17,.2); }
+
+    /* ── img ── */
+    img { max-width:100%; height:auto; border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,.1); }
+    
+    /* ── PROGRESS RINGS ── */
+    .ring-wrap { display:flex; gap:30px; align-items:center; justify-content:center; padding:20px 0; position:relative; z-index:2; }
+    .ring-item { display:flex; flex-direction:column; align-items:center; gap:10px; }
+    .ring-label-text { font-weight:700; font-size:15px; color:var(--muted); text-align:center; max-width:110px; }
+    svg.ring { transform:rotate(-90deg); }
+    circle.ring-bg { fill:none; stroke:var(--soft); stroke-width:8; }
+    circle.ring-fg { fill:none; stroke-width:8; stroke-linecap:round; transition:stroke-dashoffset 1.2s ease; }
+    .ring-center-text { font-family:var(--serif); font-size:22px; font-weight:700; fill:var(--ink); text-anchor:middle; dominant-baseline:middle; transform:rotate(90deg); transform-origin:50% 50%; }
+  </style>
+</head>
+<body>
+  <div id="laser"></div>
+  <canvas id="confetti-canvas"></canvas>
+  <div id="progress-container"><div id="progress-bar"></div></div>
+
+  <div class="stage">
+    <div class="deck-wrap" id="deckWrap">
+      <div class="deck" id="deck">
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 1 — TITLE                                     -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide section-break active">
+          <div class="slide-top">
+            <div class="meta"><div class="course" style="color:#fff;">Metro College of Technology</div><div class="sub">Lecture 2</div></div>
+            <span class="pill">💡 Press L for Laser · F for Fullscreen</span>
+          </div>
+          <div style="display:flex;flex-direction:column;justify-content:center;height:75%;gap:14px;position:relative;z-index:2;">
+            <div style="font-family:var(--mono);font-size:14px;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.5);">Introduction to Data Science</div>
+            <h1 style="font-size:72px;color:#fff;line-height:1.0;">Data Analytics<br><span style="color:var(--gold);">Frameworks</span></h1>
+            <p style="font-size:20px;color:rgba(255,255,255,.65);max-width:680px;">Understanding how organisations collect, process, and derive value from the massive amounts of data generated every day.</p>
+            <div style="display:flex;gap:12px;margin-top:12px;">
+              <span class="tag tag-red">5 Framework Types</span>
+              <span class="tag tag-teal">Real-World Applications</span>
+              <span class="tag tag-gold">Cloud Analytics</span>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 2 — METHOD OF EVALUATION                      -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Metro College of Technology</div><div class="sub">Course Structure</div></div>
+            <span class="pill">Logistics</span>
+          </div>
+          <h2>Method of Evaluation</h2>
+          <div class="grid-2">
+            <div>
+              <h3>Grading Breakdown</h3>
+              <table>
+                <tr><th>Type</th><th>Number</th><th>% Value</th></tr>
+                <tr><td>Exam</td><td>1</td><td>100%</td></tr>
+              </table>
+              <div class="callout" style="margin-top:16px;">
+                <p style="font-size:16px;"><strong>One comprehensive exam</strong> covering all lecture material, data frameworks, and applied case studies.</p>
+              </div>
+            </div>
+            <div>
+              <h3>Teaching Methods</h3>
+              <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px;">
+                <div class="info-card fragment"><strong>📖 Lecture</strong> — 20 hours of instruction in Classroom/Lab (College)</div>
+                <div class="info-card fragment"><strong>🖥️ Supervised Lab</strong> — Hands-on computer exercises and data analysis practice</div>
+                <div class="info-card fragment"><strong>👥 Location</strong> — On-campus Classroom/Lab environment</div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 3 — SECTION BREAK                             -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide section-break">
+          <div class="slide-top">
+            <div class="meta"><div class="course" style="color:#fff;">Lecture 2</div></div>
+            <span class="pill">Section 1</span>
+          </div>
+          <div style="display:flex;flex-direction:column;justify-content:center;height:78%;position:relative;z-index:2;gap:16px;">
+            <div style="font-family:var(--mono);font-size:13px;text-transform:uppercase;letter-spacing:.15em;color:rgba(255,255,255,.4);">Part 1</div>
+            <h1 style="color:#fff;font-size:68px;">Data Analytics<br>Framework</h1>
+            <p style="font-size:20px;color:rgba(255,255,255,.6);max-width:600px;">The systems, processes, and technologies that allow enterprises to extract maximum value from their data.</p>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 4 — OVERVIEW: THE DATA SCALE                  -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Analytics Framework</div><div class="sub">Overview</div></div>
+            <span class="pill">Big Picture</span>
+          </div>
+          <h2>Analytics Framework — Overview</h2>
+          <div class="grid-2" style="align-items:center;">
+            <div>
+              <p>In today's world, data is <strong>foundational to virtually every enterprise</strong>. The scale at which organisations generate, process, and store data is staggering.</p>
+              <div class="callout" style="margin-top:18px;">
+                <p style="font-size:16px;margin-bottom:6px;"><strong>Key Insight from Statista (2021):</strong></p>
+                <p style="font-size:16px;">Organisations produced a significant share of the <strong>79 zettabytes</strong> (79 trillion gigabytes) of big data generated globally — and are responsible for most of its usage, processing, and storage.</p>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:14px;">
+              <div class="stat-badge fragment">
+                <div class="stat-num">79 ZB</div>
+                <div class="stat-label">Big data generated in 2021 (Statista)</div>
+              </div>
+              <div class="stat-badge fragment" style="border-color:var(--teal);">
+                <div class="stat-num" style="color:var(--teal);">79T</div>
+                <div class="stat-label">Gigabytes — that's 79 <em>trillion</em></div>
+              </div>
+              <div class="stat-badge fragment" style="border-color:var(--gold);">
+                <div class="stat-num" style="color:#b37400;">↑</div>
+                <div class="stat-label">Volume growing exponentially year-over-year</div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 5 — OVERVIEW: WHY FRAMEWORKS MATTER          -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Analytics Framework</div><div class="sub">Overview</div></div>
+            <span class="pill">Motivation</span>
+          </div>
+          <h2>Why Frameworks Matter</h2>
+          <div class="grid-2" style="align-items:start;margin-top:6px;">
+            <div>
+              <div class="info-card" style="margin-bottom:14px;">
+                <h3 style="color:var(--accent);">Modern Approach ✓</h3>
+                <p style="font-size:17px;">Data Analytics frameworks combine <strong>efficient processes</strong> with <strong>cutting-edge technologies</strong> to create insight-rich strategies for enterprise operations.</p>
+              </div>
+              <div class="info-card fragment" style="border-left-color:var(--muted);">
+                <h3 style="color:var(--muted);">Old Approach ✗</h3>
+                <p style="font-size:17px;">Older models treated data in <em>silos</em> — looking at narrow parts of the organisation, creating inefficiencies and roadblocks to useful insight.</p>
+              </div>
+            </div>
+            <div class="fragment">
+              <div class="card" style="background:linear-gradient(135deg,#fff8f8,#fff);border:2px solid rgba(193,18,31,.2);">
+                <h3 style="color:var(--accent);margin-bottom:12px;">The Core Goal</h3>
+                <p style="font-size:17px;">Regardless of how specific guidelines vary between organisations, data analytics frameworks share one fundamental objective:</p>
+                <blockquote style="border-left:4px solid var(--accent);padding:12px 18px;margin-top:12px;background:#fff;border-radius:0 12px 12px 0;font-size:18px;font-style:italic;color:var(--ink);">
+                  "Help enterprises use analytics in a way that derives the <strong>greatest possible value</strong> from the information."
+                </blockquote>
+                <p style="font-size:15px;color:var(--muted);margin-top:12px;">A piecemeal, disorganised approach is no longer viable in today's business world.</p>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 6 — WHAT IS A DATA ANALYTICS FRAMEWORK?      -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Analytics Framework</div><div class="sub">Definition</div></div>
+            <span class="pill">Core Concept</span>
+          </div>
+          <h2>What is a Data Analytics Framework?</h2>
+          <div class="grid-2" style="align-items:start;">
+            <div>
+              <p>A data analytics framework is a <strong>concrete system</strong> for managing data analytics efficiently and effectively. The term is used in multiple ways, but for practical purposes:</p>
+              <div class="callout" style="margin-top:16px;">
+                <p><strong>Think of it as a union of:</strong></p>
+                <ul style="margin-top:10px;font-size:17px;">
+                  <li class="fragment">📋 <strong>Processes</strong> — structured workflows for data collection, cleaning, and analysis</li>
+                  <li class="fragment">🛠️ <strong>Technologies</strong> — tools and platforms that enable those processes</li>
+                  <li class="fragment">🎯 <strong>Purpose</strong> — a clearly defined business goal driving all efforts</li>
+                </ul>
+              </div>
+            </div>
+            <div class="fragment">
+              <div class="card" style="border-top:5px solid var(--teal);">
+                <h3 style="color:var(--teal);">Key Characteristics</h3>
+                <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px;">
+                  <div style="display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;border:1px solid var(--soft);background:#fff;">
+                    <span style="font-size:24px;">🔄</span>
+                    <div><strong>Varies between organisations</strong><br><span style="font-size:15px;color:var(--muted);">Specific guidelines and solutions differ widely</span></div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;border:1px solid var(--soft);background:#fff;">
+                    <span style="font-size:24px;">🎯</span>
+                    <div><strong>Consistent goal</strong><br><span style="font-size:15px;color:var(--muted);">Maximum value extraction from information</span></div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;border:1px solid var(--soft);background:#fff;">
+                    <span style="font-size:24px;">⚠️</span>
+                    <div><strong>Not optional</strong><br><span style="font-size:15px;color:var(--muted);">Disorganised approaches are not viable today</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 7 — TYPES OVERVIEW (INTERACTIVE)             -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Analytics Framework</div><div class="sub">Taxonomy</div></div>
+            <span class="pill">🖱️ Click a card to explore</span>
+          </div>
+          <h2>5 Types of Analytics Frameworks</h2>
+          <div class="grid-5" style="margin-top:12px;align-items:start;">
+            <div class="analytics-card" onclick="selectAnalytics(this)">
+              <div class="analytics-icon">📊</div>
+              <div class="analytics-title">Descriptive</div>
+              <div class="analytics-question">What happened?</div>
+              <div class="analytics-detail">Summarises historical data to identify trends and patterns. The most common starting point for any analytics effort.</div>
+            </div>
+            <div class="analytics-card" onclick="selectAnalytics(this)">
+              <div class="analytics-icon">🔍</div>
+              <div class="analytics-title">Diagnostic</div>
+              <div class="analytics-question">Why did it happen?</div>
+              <div class="analytics-detail">Investigates the root causes behind past events and trends. Answers the "why" behind the data.</div>
+            </div>
+            <div class="analytics-card" onclick="selectAnalytics(this)">
+              <div class="analytics-icon">🔮</div>
+              <div class="analytics-title">Predictive</div>
+              <div class="analytics-question">What will happen?</div>
+              <div class="analytics-detail">Uses statistical models and ML to forecast future outcomes based on historical patterns.</div>
+            </div>
+            <div class="analytics-card" onclick="selectAnalytics(this)">
+              <div class="analytics-icon">💡</div>
+              <div class="analytics-title">Prescriptive</div>
+              <div class="analytics-question">What should we do?</div>
+              <div class="analytics-detail">Takes predictive insights further by recommending specific actions. Often uses AI and optimisation techniques.</div>
+            </div>
+            <div class="analytics-card" onclick="selectAnalytics(this)">
+              <div class="analytics-icon">🧠</div>
+              <div class="analytics-title">Cognitive</div>
+              <div class="analytics-question">How can AI improve?</div>
+              <div class="analytics-detail">Mimics human thought using AI and ML to simulate complex reasoning and enhance decision-making.</div>
+            </div>
+          </div>
+          <div style="position:relative;z-index:2;margin-top:16px;" id="analytics-hint">
+            <div class="callout callout-teal" style="padding:12px 18px;">
+              <p style="font-size:16px;color:var(--teal);">⬆️ Click any card above to see its full description. The types build on each other — from basic summarisation to AI-driven decision-making.</p>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 8 — DESCRIPTIVE ANALYTICS                    -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Analytics Types</div><div class="sub">Type 1 of 5</div></div>
+            <span class="pill">📊 Descriptive Analytics</span>
+          </div>
+          <h2>Descriptive Analytics</h2>
+          <div class="grid-2" style="align-items:start;">
+            <div>
+              <div class="callout">
+                <p><strong>Core Question: "What happened?"</strong></p>
+                <p style="font-size:17px;margin-top:8px;">Focuses on summarising past data to identify trends and patterns. The foundation of all analytics work.</p>
+              </div>
+              <div style="margin-top:18px;">
+                <h3>Real-World Examples</h3>
+                <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">
+                  <div class="info-card fragment"><strong>🛒 Retail</strong> — A sales report showing total revenue, products sold, and customer demographics over the past year</div>
+                  <div class="info-card fragment"><strong>🏥 Healthcare</strong> — A hospital dashboard summarising monthly patient admissions for heart disease</div>
+                  <div class="info-card fragment"><strong>💻 Digital</strong> — Website traffic analysis showing visitor counts, locations, and page views</div>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="card fragment" style="border-top:5px solid #3b82f6;background:linear-gradient(135deg,#eff6ff,#fff);">
+                <h3 style="color:#1d4ed8;">Common Descriptive Tools</h3>
+                <div class="timeline" style="margin-top:14px;">
+                  <div class="timeline-item">
+                    <span class="tl-label" style="background:#3b82f6;">Dashboards</span>
+                    <div class="tl-body">Real-time visual summaries of KPIs (Tableau, Power BI)</div>
+                  </div>
+                  <div class="timeline-item">
+                    <span class="tl-label" style="background:#6366f1;">Reports</span>
+                    <div class="tl-body">Periodic summaries of historical performance data</div>
+                  </div>
+                  <div class="timeline-item" style="margin-bottom:0;">
+                    <span class="tl-label" style="background:#8b5cf6;">Averages & Totals</span>
+                    <div class="tl-body">Mean, median, mode, percentages, and aggregations</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 9 — DIAGNOSTIC ANALYTICS                     -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Analytics Types</div><div class="sub">Type 2 of 5</div></div>
+            <span class="pill">🔍 Diagnostic Analytics</span>
+          </div>
+          <h2>Diagnostic Analytics</h2>
+          <div class="grid-2">
+            <div>
+              <div class="callout callout-gold">
+                <p><strong>Core Question: "Why did it happen?"</strong></p>
+                <p style="font-size:17px;margin-top:8px;">Goes beyond what occurred to investigate <em>root causes</em> behind past trends. Relies heavily on drill-down and correlation techniques.</p>
+              </div>
+              <div style="margin-top:18px;">
+                <h3>Real-World Examples</h3>
+                <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">
+                  <div class="info-card fragment" style="border-left-color:var(--gold);"><strong>🛒 E-Commerce</strong> — A drop in July sales traced back to competitor discounts that month</div>
+                  <div class="info-card fragment" style="border-left-color:var(--gold);"><strong>🏥 Hospital</strong> — Rising readmissions investigated for poor follow-up care or medication issues</div>
+                  <div class="info-card fragment" style="border-left-color:var(--gold);"><strong>🏭 Manufacturing</strong> — Machine breakdowns correlated with high-humidity conditions</div>
+                </div>
+              </div>
+            </div>
+            <div class="fragment">
+              <div class="card" style="border-top:5px solid var(--gold);background:linear-gradient(135deg,#fffbf0,#fff);">
+                <h3 style="color:#b37400;">Diagnostic Techniques</h3>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;">
+                  <div style="padding:12px;border-radius:12px;background:#fff;border:1px solid var(--soft);text-align:center;">
+                    <div style="font-size:26px;margin-bottom:6px;">📉</div>
+                    <div style="font-weight:700;font-size:15px;">Drill-Down</div>
+                    <div style="font-size:13px;color:var(--muted);margin-top:4px;">Navigate from summary to detail</div>
+                  </div>
+                  <div style="padding:12px;border-radius:12px;background:#fff;border:1px solid var(--soft);text-align:center;">
+                    <div style="font-size:26px;margin-bottom:6px;">🔗</div>
+                    <div style="font-weight:700;font-size:15px;">Correlation</div>
+                    <div style="font-size:13px;color:var(--muted);margin-top:4px;">Find related variables</div>
+                  </div>
+                  <div style="padding:12px;border-radius:12px;background:#fff;border:1px solid var(--soft);text-align:center;">
+                    <div style="font-size:26px;margin-bottom:6px;">🧪</div>
+                    <div style="font-weight:700;font-size:15px;">Hypothesis Testing</div>
+                    <div style="font-size:13px;color:var(--muted);margin-top:4px;">Test cause-effect theories</div>
+                  </div>
+                  <div style="padding:12px;border-radius:12px;background:#fff;border:1px solid var(--soft);text-align:center;">
+                    <div style="font-size:26px;margin-bottom:6px;">📊</div>
+                    <div style="font-weight:700;font-size:15px;">Data Mining</div>
+                    <div style="font-size:13px;color:var(--muted);margin-top:4px;">Discover hidden patterns</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 10 — PREDICTIVE ANALYTICS                    -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Analytics Types</div><div class="sub">Type 3 of 5</div></div>
+            <span class="pill">🔮 Predictive Analytics</span>
+          </div>
+          <h2>Predictive Analytics</h2>
+          <div class="grid-2">
+            <div>
+              <div class="callout callout-teal">
+                <p><strong>Core Question: "What will happen?"</strong></p>
+                <p style="font-size:17px;margin-top:8px;">Applies statistical models and <strong>machine learning</strong> to predict future outcomes based on historical data patterns.</p>
+              </div>
+              <div style="margin-top:18px;">
+                <h3>Real-World Examples</h3>
+                <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">
+                  <div class="info-card fragment" style="border-left-color:var(--teal);"><strong>🏦 Banking</strong> — Predicts which customers are likely to default on loans based on credit history</div>
+                  <div class="info-card fragment" style="border-left-color:var(--teal);"><strong>🏥 Healthcare</strong> — Forecasts flu case counts next month based on historical seasons and weather</div>
+                  <div class="info-card fragment" style="border-left-color:var(--teal);"><strong>🛍️ Retail</strong> — Identifies which products will see holiday demand spikes</div>
+                </div>
+              </div>
+            </div>
+            <div class="fragment">
+              <div class="card" style="border-top:5px solid var(--teal);background:linear-gradient(135deg,#f0fafe,#fff);">
+                <h3 style="color:var(--teal);">Key ML Algorithms Used</h3>
+                <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px;">
+                  <div style="padding:10px 14px;border-radius:10px;background:#fff;border:1px solid var(--soft);font-size:16px;display:flex;align-items:center;gap:10px;"><span>📈</span> <strong>Linear/Logistic Regression</strong></div>
+                  <div style="padding:10px 14px;border-radius:10px;background:#fff;border:1px solid var(--soft);font-size:16px;display:flex;align-items:center;gap:10px;"><span>🌲</span> <strong>Decision Trees & Random Forests</strong></div>
+                  <div style="padding:10px 14px;border-radius:10px;background:#fff;border:1px solid var(--soft);font-size:16px;display:flex;align-items:center;gap:10px;"><span>📡</span> <strong>Neural Networks</strong></div>
+                  <div style="padding:10px 14px;border-radius:10px;background:#fff;border:1px solid var(--soft);font-size:16px;display:flex;align-items:center;gap:10px;"><span>⏱️</span> <strong>Time Series Forecasting</strong></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 11 — PRESCRIPTIVE ANALYTICS                  -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Analytics Types</div><div class="sub">Type 4 of 5</div></div>
+            <span class="pill">💡 Prescriptive Analytics</span>
+          </div>
+          <h2>Prescriptive Analytics</h2>
+          <div class="grid-2">
+            <div>
+              <div class="callout" style="border-left-color:#7c3aed;background:#faf5ff;">
+                <p><strong>Core Question: "What should be done?"</strong></p>
+                <p style="font-size:17px;margin-top:8px;">Takes predictive insights and recommends specific <em>actions</em>. Often uses AI and optimisation techniques to automate decisions.</p>
+              </div>
+              <div style="margin-top:18px;">
+                <h3>Real-World Examples</h3>
+                <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">
+                  <div class="info-card fragment" style="border-left-color:#7c3aed;"><strong>🚗 Ride-Sharing (Uber)</strong> — Suggests optimal driver routes to reduce wait times and fuel costs</div>
+                  <div class="info-card fragment" style="border-left-color:#7c3aed;"><strong>🛒 E-Commerce</strong> — Recommends optimal pricing based on demand and competitor data</div>
+                  <div class="info-card fragment" style="border-left-color:#7c3aed;"><strong>🏥 Hospital Scheduling</strong> — Suggests ideal staffing levels to minimise patient wait times</div>
+                </div>
+              </div>
+            </div>
+            <div class="fragment">
+              <div class="card" style="border-top:5px solid #7c3aed;background:linear-gradient(135deg,#faf5ff,#fff);">
+                <h3 style="color:#7c3aed;">Descriptive → Prescriptive Ladder</h3>
+                <div style="margin-top:14px;display:flex;flex-direction:column;gap:0;">
+                  <div style="padding:10px 14px;background:rgba(59,130,246,.08);border-radius:10px 10px 0 0;border:1px solid rgba(59,130,246,.2);font-size:15px;"><strong style="color:#1d4ed8;">📊 Descriptive:</strong> "Sales dropped 20% in Q3"</div>
+                  <div style="padding:10px 14px;background:rgba(245,158,11,.08);border-top:none;border:1px solid rgba(245,158,11,.2);font-size:15px;"><strong style="color:#b37400;">🔍 Diagnostic:</strong> "Due to competitor promotions"</div>
+                  <div style="padding:10px 14px;background:rgba(0,150,160,.08);border-top:none;border:1px solid rgba(0,150,160,.2);font-size:15px;"><strong style="color:var(--teal);">🔮 Predictive:</strong> "Q4 likely to drop another 12%"</div>
+                  <div style="padding:10px 14px;background:rgba(124,58,237,.1);border-top:none;border:1px solid rgba(124,58,237,.25);border-radius:0 0 10px 10px;font-size:15px;"><strong style="color:#7c3aed;">💡 Prescriptive:</strong> "Launch loyalty campaign in November"</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 12 — COGNITIVE ANALYTICS                     -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Analytics Types</div><div class="sub">Type 5 of 5</div></div>
+            <span class="pill">🧠 Cognitive Analytics</span>
+          </div>
+          <h2>Cognitive Analytics</h2>
+          <div class="grid-2">
+            <div>
+              <div class="callout" style="border-left-color:#dc2626;background:#fff8f8;">
+                <p><strong>Core Question: "How can we make smarter decisions?"</strong></p>
+                <p style="font-size:17px;margin-top:8px;">Mimics <em>human thought processes</em> by using AI and ML. Handles ambiguity, natural language, and unstructured data that other types cannot.</p>
+              </div>
+              <div style="margin-top:18px;">
+                <h3>Real-World Examples</h3>
+                <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">
+                  <div class="info-card fragment" style="border-left-color:#dc2626;"><strong>💬 Customer Service Chatbots</strong> — Understands customer emotions and responds appropriately in natural language</div>
+                  <div class="info-card fragment" style="border-left-color:#dc2626;"><strong>🚗 Self-Driving Cars</strong> — Analyses traffic, weather, and road conditions simultaneously to navigate</div>
+                  <div class="info-card fragment" style="border-left-color:#dc2626;"><strong>🏥 Medical AI</strong> — Scans radiology images and suggests diagnoses with explanations</div>
+                </div>
+              </div>
+            </div>
+            <div class="fragment">
+              <div class="card" style="border-top:5px solid #dc2626;background:linear-gradient(135deg,#fff8f8,#fff);">
+                <h3 style="color:#dc2626;">Key Technologies</h3>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;">
+                  <div style="padding:14px;border-radius:12px;background:#fff;border:1px solid var(--soft);text-align:center;">
+                    <div style="font-size:28px;margin-bottom:6px;">🤖</div>
+                    <div style="font-weight:700;font-size:15px;">Machine Learning</div>
+                  </div>
+                  <div style="padding:14px;border-radius:12px;background:#fff;border:1px solid var(--soft);text-align:center;">
+                    <div style="font-size:28px;margin-bottom:6px;">📝</div>
+                    <div style="font-weight:700;font-size:15px;">NLP</div>
+                  </div>
+                  <div style="padding:14px;border-radius:12px;background:#fff;border:1px solid var(--soft);text-align:center;">
+                    <div style="font-size:28px;margin-bottom:6px;">🌐</div>
+                    <div style="font-weight:700;font-size:15px;">Neural Networks</div>
+                  </div>
+                  <div style="padding:14px;border-radius:12px;background:#fff;border:1px solid var(--soft);text-align:center;">
+                    <div style="font-size:28px;margin-bottom:6px;">👁️</div>
+                    <div style="font-weight:700;font-size:15px;">Computer Vision</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 13 — QUICK QUIZ (INTERACTIVE)               -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Check Your Understanding</div><div class="sub">Quick Quiz</div></div>
+            <span class="pill">🧩 Interactive</span>
+          </div>
+          <h2>Quiz — Which Type?</h2>
+          <p style="position:relative;z-index:2;margin-bottom:16px;font-size:18px;"><strong>Scenario:</strong> A bank notices loan defaults are rising and wants to understand which customer segments to proactively contact next month to prevent further losses. What type of analytics should they use?</p>
+          <div id="quiz1" style="position:relative;z-index:2;">
+            <div class="quiz-option" onclick="checkQuiz(this,'wrong',1)"><span style="font-size:20px;">📊</span> Descriptive Analytics — summarise past default rates</div>
+            <div class="quiz-option" onclick="checkQuiz(this,'wrong',1)"><span style="font-size:20px;">🔍</span> Diagnostic Analytics — investigate why defaults happened</div>
+            <div class="quiz-option" onclick="checkQuiz(this,'correct',1)"><span style="font-size:20px;">💡</span> Prescriptive Analytics — recommend which customers to contact and how</div>
+            <div class="quiz-option" onclick="checkQuiz(this,'wrong',1)"><span style="font-size:20px;">🧠</span> Cognitive Analytics — use AI to chat with at-risk customers</div>
+          </div>
+          <div id="quiz1-feedback" class="quiz-feedback"></div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 14 — SECTION BREAK: USE CASES               -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide section-break">
+          <div class="slide-top">
+            <div class="meta"><div class="course" style="color:#fff;">Lecture 2</div></div>
+            <span class="pill">Section 2</span>
+          </div>
+          <div style="display:flex;flex-direction:column;justify-content:center;height:78%;position:relative;z-index:2;gap:16px;">
+            <div style="font-family:var(--mono);font-size:13px;text-transform:uppercase;letter-spacing:.15em;color:rgba(255,255,255,.4);">Part 2</div>
+            <h1 style="color:#fff;font-size:68px;">Use of the<br>Analytics Framework</h1>
+            <p style="font-size:20px;color:rgba(255,255,255,.6);max-width:600px;">How organisations apply data analytics frameworks to drive real business outcomes — from performance to product to maintenance.</p>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 15 — USE CASES OVERVIEW                      -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Use of Analytics</div><div class="sub">Introduction</div></div>
+            <span class="pill">Business Value</span>
+          </div>
+          <h2>Applying the Framework</h2>
+          <p style="margin-bottom:20px;font-size:18px;">Organisations typically base their frameworks on a <strong>clearly defined purpose</strong>, starting with the question: <em>"What business outcomes do we hope to achieve with data analytics?"</em></p>
+          <div class="grid-3" style="align-items:stretch;margin-top:10px;">
+            <div class="analytics-card fragment" style="border-top:6px solid var(--accent);">
+              <div class="analytics-icon">📈</div>
+              <div class="analytics-title">1. Measuring Performance</div>
+              <div class="analytics-detail" style="display:block;font-size:16px;color:var(--ink);">Gathering KPIs and monitoring business health across units — from profitability to app engagement.</div>
+            </div>
+            <div class="analytics-card fragment" style="border-top:6px solid var(--teal);">
+              <div class="analytics-icon">🛠️</div>
+              <div class="analytics-title">2. Product Development</div>
+              <div class="analytics-detail" style="display:block;font-size:16px;color:var(--ink);">Using historical sales, competitor KPIs, demand analysis, and device data to guide better product design.</div>
+            </div>
+            <div class="analytics-card fragment" style="border-top:6px solid var(--gold);">
+              <div class="analytics-icon">⚙️</div>
+              <div class="analytics-title">3. Predictive Maintenance</div>
+              <div class="analytics-detail" style="display:block;font-size:16px;color:var(--ink);">Assessing machine health, projecting failure likelihood, and scheduling repairs to minimise downtime.</div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 16 — USE CASE 1: MEASURING PERFORMANCE       -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Use of Analytics</div><div class="sub">Use Case 1</div></div>
+            <span class="pill">📈 Measuring Performance</span>
+          </div>
+          <h2>1. Measuring Performance</h2>
+          <div class="grid-2">
+            <div>
+              <p>One of the most <strong>common use cases</strong> for analytics frameworks. Enterprises must remain constantly aware of everything affecting their bottom line.</p>
+              <div class="callout" style="margin-top:16px;">
+                <p style="font-size:17px;">The solution: <strong>Key Performance Indicators (KPIs)</strong> — gathered systematically and assessed through the analytics framework.</p>
+              </div>
+              <div style="margin-top:16px;">
+                <h3>Scope of Performance Analytics</h3>
+                <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap;">
+                  <div class="info-card fragment" style="flex:1;min-width:180px;">🏢 <strong>Wide-ranging:</strong> Profitability across different business units</div>
+                  <div class="info-card fragment" style="flex:1;min-width:180px;">📱 <strong>Narrow:</strong> Customer-facing app daily active users and engagement</div>
+                </div>
+              </div>
+            </div>
+            <div class="fragment">
+              <div class="card" style="border-top:5px solid var(--accent);">
+                <h3 style="color:var(--accent);">Sample KPI Dashboard</h3>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;">
+                  <div style="background:#fff;border:1px solid var(--soft);border-radius:12px;padding:14px;text-align:center;">
+                    <div style="font-family:var(--serif);font-size:32px;color:#16a34a;">↑ 14%</div>
+                    <div style="font-size:13px;color:var(--muted);">Monthly Revenue</div>
+                  </div>
+                  <div style="background:#fff;border:1px solid var(--soft);border-radius:12px;padding:14px;text-align:center;">
+                    <div style="font-family:var(--serif);font-size:32px;color:var(--accent);">↓ 3%</div>
+                    <div style="font-size:13px;color:var(--muted);">Churn Rate</div>
+                  </div>
+                  <div style="background:#fff;border:1px solid var(--soft);border-radius:12px;padding:14px;text-align:center;">
+                    <div style="font-family:var(--serif);font-size:32px;color:#3b82f6;">92%</div>
+                    <div style="font-size:13px;color:var(--muted);">User Retention</div>
+                  </div>
+                  <div style="background:#fff;border:1px solid var(--soft);border-radius:12px;padding:14px;text-align:center;">
+                    <div style="font-family:var(--serif);font-size:32px;color:#7c3aed;">4.8★</div>
+                    <div style="font-size:13px;color:var(--muted);">Satisfaction Score</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 17 — USE CASE 2: PRODUCT DEVELOPMENT         -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Use of Analytics</div><div class="sub">Use Case 2</div></div>
+            <span class="pill">🛠️ Product Development</span>
+          </div>
+          <h2>2. Product Development</h2>
+          <div class="grid-2">
+            <div>
+              <p>Today it's <strong>impossible to develop a new product in a vacuum</strong>. Development must be informed by data at every stage.</p>
+              <div style="margin-top:18px;display:flex;flex-direction:column;gap:10px;">
+                <div class="info-card fragment"><strong>📊 Historical Sales</strong> — What sold before, at what price, and to whom</div>
+                <div class="info-card fragment"><strong>🏆 Competitor KPIs</strong> — Success/failure of rivals with similar products</div>
+                <div class="info-card fragment"><strong>📉 Demand Analysis</strong> — What the market actually wants right now</div>
+                <div class="info-card fragment"><strong>⚠️ Failure Projections</strong> — Where might the product fall short?</div>
+              </div>
+            </div>
+            <div class="fragment">
+              <div class="card" style="border-top:5px solid var(--teal);background:linear-gradient(135deg,#f0fafe,#fff);">
+                <h3 style="color:var(--teal);">Modern Device Data Advantage</h3>
+                <p style="font-size:16px;margin-top:10px;">Modern devices — from smartphones and medical wearables to connected cars — passively collect <strong>consumer behaviour data</strong>.</p>
+                <p style="font-size:16px;margin-top:10px;">Frameworks ensure product teams can <em>leverage</em> this disparate information to:</p>
+                <ul style="font-size:15px;margin-top:8px;">
+                  <li>Learn from past product mistakes</li>
+                  <li>Identify unmet user needs</li>
+                  <li>Determine better design strategies for the future</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 18 — USE CASE 3: PREDICTIVE MAINTENANCE      -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Use of Analytics</div><div class="sub">Use Case 3</div></div>
+            <span class="pill">⚙️ Predictive Maintenance</span>
+          </div>
+          <h2>3. Predictive Maintenance</h2>
+          <div class="grid-2">
+            <div>
+              <div class="callout callout-gold">
+                <p style="font-size:17px;">Manufacturers and heavy industrial businesses can <strong>assess machine health</strong>, project failure likelihood, and schedule priority repairs — <em>before</em> breakdown occurs.</p>
+              </div>
+              <p style="margin-top:16px;font-size:18px;">This helps:</p>
+              <ul style="font-size:17px;margin-top:8px;">
+                <li class="fragment">Minimise equipment downtime</li>
+                <li class="fragment">Keep production schedules on track</li>
+                <li class="fragment">Reduce emergency repair costs</li>
+                <li class="fragment">Extend equipment lifespan</li>
+              </ul>
+            </div>
+            <div class="fragment">
+              <div class="card" style="border-top:5px solid var(--gold);background:linear-gradient(135deg,#fffbf0,#fff);">
+                <h3 style="color:#b37400;">Data Collected for Predictions</h3>
+                <div class="timeline" style="margin-top:14px;">
+                  <div class="timeline-item">
+                    <span class="tl-label" style="background:#b37400;">Equipment Age</span>
+                    <div class="tl-body">How long has the machine been in operation?</div>
+                  </div>
+                  <div class="timeline-item">
+                    <span class="tl-label" style="background:#b37400;">Repair History</span>
+                    <div class="tl-body">Number and nature of previous maintenance events</div>
+                  </div>
+                  <div class="timeline-item">
+                    <span class="tl-label" style="background:#b37400;">Wear Indicators</span>
+                    <div class="tl-body">Vibration, temperature, pressure sensor readings</div>
+                  </div>
+                  <div class="timeline-item" style="margin-bottom:0;">
+                    <span class="tl-label" style="background:#b37400;">Overall Effectiveness</span>
+                    <div class="tl-body">OEE score and productivity metrics</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 19 — TOOLS & TECH TO SUPPORT                 -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Analytics Framework</div><div class="sub">Infrastructure</div></div>
+            <span class="pill">🛠️ Tools & Tech</span>
+          </div>
+          <h2>Tools &amp; Tech to Support</h2>
+          <p style="font-size:18px;margin-bottom:18px;">To achieve optimal results, the framework must be supported by cutting-edge technologies and solutions:</p>
+          <div class="grid-2" style="align-items:stretch;">
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div class="info-card fragment" style="border-left-color:#3b82f6;">
+                <strong>☁️ Cloud-Ready Architecture</strong>
+                <p style="font-size:15px;margin-top:6px;">Modern enterprise data management is driven by cloud trends. Your framework must be cloud-ready <em>without</em> sacrificing on-premises infrastructure.</p>
+              </div>
+              <div class="info-card fragment" style="border-left-color:#7c3aed;">
+                <strong>🌐 Hybrid Multi-Cloud</strong>
+                <p style="font-size:15px;margin-top:6px;">Provides maximum flexibility, especially when real-time stream processing is needed across multiple environments.</p>
+              </div>
+              <div class="info-card fragment" style="border-left-color:var(--teal);">
+                <strong>🔗 Data Integration</strong>
+                <p style="font-size:15px;margin-top:6px;">Integration from all relevant sources is a must. Analytics platforms with warehousing capabilities provide a firm foundation.</p>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div class="info-card fragment" style="border-left-color:var(--gold);">
+                <strong>🏊 Data Lake + Data Warehouse</strong>
+                <p style="font-size:15px;margin-top:6px;">Object storage infrastructure creates a data lake alongside a warehouse, ensuring structured, unstructured, and semi-structured data are all properly handled.</p>
+              </div>
+              <div class="card fragment" style="border-top:4px solid var(--accent);background:linear-gradient(135deg,#fff8f8,#fff);">
+                <h3 style="color:var(--accent);margin-bottom:10px;">Data Storage Stack</h3>
+                <div style="font-size:15px;display:flex;flex-direction:column;gap:6px;">
+                  <div style="padding:8px 12px;background:#fff;border-radius:8px;border:1px solid var(--soft);">🗃️ <strong>Data Lake</strong> — Raw, unprocessed data (all formats)</div>
+                  <div style="padding:8px 12px;background:#fff;border-radius:8px;border:1px solid var(--soft);">🏗️ <strong>Data Warehouse</strong> — Structured, analysis-ready data</div>
+                  <div style="padding:8px 12px;background:#fff;border-radius:8px;border:1px solid var(--soft);">⚡ <strong>Stream Processor</strong> — Real-time data ingestion</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 20 — SECTION BREAK: CLOUD BENEFITS           -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide section-break">
+          <div class="slide-top">
+            <div class="meta"><div class="course" style="color:#fff;">Lecture 2</div></div>
+            <span class="pill">Section 3</span>
+          </div>
+          <div style="display:flex;flex-direction:column;justify-content:center;height:78%;position:relative;z-index:2;gap:16px;">
+            <div style="font-family:var(--mono);font-size:13px;text-transform:uppercase;letter-spacing:.15em;color:rgba(255,255,255,.4);">Part 3</div>
+            <h1 style="color:#fff;font-size:62px;">Benefits of a<br><span style="color:var(--gold);">Cloud-Ready</span><br>Analytics Framework</h1>
+            <p style="font-size:19px;color:rgba(255,255,255,.6);max-width:580px;">The compounding advantages of deploying a data analytics framework built on sound data science principles and agile, reliable cloud technologies.</p>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 21 — BENEFITS (INTERACTIVE TABS)             -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Cloud Analytics Benefits</div><div class="sub">Overview</div></div>
+            <span class="pill">🖱️ Click tabs to explore</span>
+          </div>
+          <h2>3 Key Benefits</h2>
+          <div class="benefit-tabs" onclick="">
+            <button class="benefit-tab active" onclick="showBenefit(this,'b1')">⚡ 1. Faster Integration</button>
+            <button class="benefit-tab" onclick="showBenefit(this,'b2')">♻️ 2. Reduced Duplication</button>
+            <button class="benefit-tab" onclick="showBenefit(this,'b3')">🚀 3. Limitless Scalability</button>
+          </div>
+
+          <div id="b1" class="benefit-content active">
+            <div class="grid-2">
+              <div>
+                <p>A cloud-centric framework allows for the <strong>coexistence of multiple data types</strong> and permits multiple analysis methods simultaneously.</p>
+                <ul style="font-size:17px;margin-top:14px;">
+                  <li>Cuts down time to analyse and minimises bottlenecks</li>
+                  <li>Less time on processing, preparing, and reconfiguring data</li>
+                  <li>More time devoted to <strong>applying data innovatively</strong></li>
+                  <li>Enables <strong>real-time data processing</strong> capabilities</li>
+                </ul>
+                <div class="callout" style="margin-top:16px;">
+                  <p style="font-size:16px;">Real-time processing improves customer service, facilitates internal collaboration, and <strong>boosts operational efficiency</strong>.</p>
+                </div>
+              </div>
+              <div class="stat-badge" style="align-self:center;padding:30px;">
+                <div style="font-family:var(--serif);font-size:72px;color:var(--accent);line-height:1;">10×</div>
+                <div style="font-size:16px;color:var(--muted);margin-top:6px;">Faster data integration compared to legacy on-premises approaches</div>
+              </div>
+            </div>
+          </div>
+
+          <div id="b2" class="benefit-content">
+            <div class="grid-2">
+              <div>
+                <p>Cloud-based frameworks give enterprises the ability to <strong>store, access, and use all data</strong> without reformatting, duplicating, or moving it.</p>
+                <ul style="font-size:17px;margin-top:14px;">
+                  <li>No more data spread across incompatible formats</li>
+                  <li>Proceed straight to analysis, application, and innovation</li>
+                  <li>Supports an <strong>end-to-end view</strong> of the business</li>
+                  <li>Creates a <strong>Single Source of Truth (SSOT)</strong></li>
+                </ul>
+              </div>
+              <div>
+                <div class="card" style="border-top:5px solid var(--teal);margin-top:0;">
+                  <h3 style="color:var(--teal);">Before vs. After</h3>
+                  <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px;">
+                    <div style="padding:10px;border-radius:10px;background:#fef2f2;border:1px solid #fca5a5;font-size:15px;">❌ <strong>Before:</strong> 5 departments, 5 different spreadsheets, no agreement on "the number"</div>
+                    <div style="padding:10px;border-radius:10px;background:#f0fdf4;border:1px solid #86efac;font-size:15px;">✅ <strong>After:</strong> One unified cloud platform — everyone works from the same data</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="b3" class="benefit-content">
+            <div class="grid-2">
+              <div>
+                <p>In an unpredictable business environment, a framework that can <strong>scale up or down instantly</strong> is invaluable.</p>
+                <ul style="font-size:17px;margin-top:14px;">
+                  <li>Respond immediately to changing organisational needs</li>
+                  <li>Handle spikes in data volume without degradation</li>
+                  <li>Traditional tools: <strong>expensive</strong> with rigid pricing models</li>
+                  <li>Cloud solutions: <strong>pay only for what you use</strong></li>
+                </ul>
+              </div>
+              <div>
+                <div class="card" style="border-top:5px solid var(--gold);margin-top:0;background:linear-gradient(135deg,#fffbf0,#fff);">
+                  <h3 style="color:#b37400;">Cost Model Comparison</h3>
+                  <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px;">
+                    <div style="padding:12px;border-radius:10px;background:#fef2f2;border:1px solid #fca5a5;font-size:15px;"><strong>Traditional:</strong> Upfront hardware costs + expensive licences + fixed capacity</div>
+                    <div style="padding:12px;border-radius:10px;background:#f0fdf4;border:1px solid #86efac;font-size:15px;"><strong>Cloud:</strong> Pay-per-use pricing, scale with demand, no idle capacity</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 22 — LOOKING TO THE FUTURE                   -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Analytics Framework</div><div class="sub">Future Trends</div></div>
+            <span class="pill">🔭 Looking Ahead</span>
+          </div>
+          <h2>Looking to the Future</h2>
+          <p style="font-size:17px;margin-bottom:18px;">There are many approaches to business analytics and countless tools that support them — and the market will grow wider in the near future.</p>
+          <div class="grid-3" style="align-items:stretch;">
+            <div class="card fragment" style="border-top:6px solid #3b82f6;display:flex;flex-direction:column;">
+              <div style="font-size:32px;margin-bottom:10px;">📊</div>
+              <h3 style="color:#1d4ed8;">Self-Service Reporting</h3>
+              <p style="font-size:15px;color:var(--muted);margin-top:8px;flex:1;">The market continues to expand as more business users want to leverage analytics <strong>without needing a data scientist, analyst, or engineer</strong>.</p>
+              <span class="tag tag-teal" style="margin-top:12px;align-self:start;">Growing trend</span>
+            </div>
+            <div class="card fragment" style="border-top:6px solid var(--accent);display:flex;flex-direction:column;">
+              <div style="font-size:32px;margin-bottom:10px;">🧠</div>
+              <h3 style="color:var(--accent);">Deep Learning Proliferation</h3>
+              <p style="font-size:15px;color:var(--muted);margin-top:8px;flex:1;">Advanced ML based on <strong>multi-layer neural networks</strong> will spread as more enterprises acquire the computing resources to support it.</p>
+              <span class="tag tag-red" style="margin-top:12px;align-self:start;">Emerging</span>
+            </div>
+            <div class="card fragment" style="border-top:6px solid var(--gold);display:flex;flex-direction:column;">
+              <div style="font-size:32px;margin-bottom:10px;">🌐</div>
+              <h3 style="color:#b37400;">Data Fabric Adoption</h3>
+              <p style="font-size:15px;color:var(--muted);margin-top:8px;flex:1;">Researchers project rising adoption of the <strong>data fabric concept</strong> due to increasing interest in real-time streaming analytics across distributed sources.</p>
+              <span class="tag tag-gold" style="margin-top:12px;align-self:start;">Projected growth</span>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 23 — CLASS EXERCISE INTRO                    -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Class Activity</div><div class="sub">Group Exercise</div></div>
+            <span class="pill">👥 Discussion</span>
+          </div>
+          <h2>Class Exercise — Walmart South Asia</h2>
+          <div class="grid-2" style="align-items:start;">
+            <div>
+              <div class="callout" style="font-size:17px;">
+                <p><strong>Scenario:</strong> Walmart is looking to open new brick-and-mortar stores in <strong>new parts of South Asia</strong>. Since every geography has different requirements and demand for products, an in-depth analysis of key variables is essential.</p>
+              </div>
+              <div style="margin-top:20px;">
+                <h3>Discuss with your group:</h3>
+                <ul style="font-size:17px;margin-top:10px;">
+                  <li class="fragment"><strong>🔴 Key challenges</strong> South Asian retailers face currently</li>
+                  <li class="fragment"><strong>🔵 Customer-specific initiatives</strong> to keep in mind during planning</li>
+                  <li class="fragment"><strong>📊 Which analytics type</strong> is most relevant at each stage?</li>
+                </ul>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div class="card fragment" style="border-top:5px solid var(--accent);">
+                <h3 style="color:var(--accent);">💭 Starter Questions</h3>
+                <ul style="font-size:15px;margin-top:8px;">
+                  <li>How does local competition (e.g., Kirana stores) affect strategy?</li>
+                  <li>What data would Walmart need to collect before entering a new city?</li>
+                  <li>How do cultural preferences affect product assortment decisions?</li>
+                  <li>What infrastructure challenges exist for supply chain analytics?</li>
+                </ul>
+              </div>
+              <div class="callout callout-teal">
+                <p style="font-size:15px;">⏱️ <strong>Time: 10 minutes</strong> — Share your top 3 challenges and 2 customer initiatives with the class.</p>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 24 — WALMART ANALYTICS FRAMEWORK TABLE       -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Class Activity</div><div class="sub">Solution Framework</div></div>
+            <span class="pill">🖱️ Reveal rows to explore</span>
+          </div>
+          <h2>Applying Analytics to Walmart's Expansion</h2>
+          <table style="margin-top:10px;font-size:16px;">
+            <tr>
+              <th style="width:18%;">Analytical Stage</th>
+              <th style="width:20%;">Business Focus</th>
+              <th>Example in Walmart's South Asia Expansion</th>
+            </tr>
+            <tr class="fragment" style="cursor:pointer;" onclick="this.style.background='rgba(193,18,31,.06)'">
+              <td><strong>📊 Descriptive</strong></td>
+              <td>What happened?</td>
+              <td>Analysing past sales data and customer preferences in South Asian markets to understand existing retail patterns</td>
+            </tr>
+            <tr class="fragment" onclick="this.style.background='rgba(245,158,11,.06)'">
+              <td><strong>🔍 Diagnostic</strong></td>
+              <td>Why did it happen?</td>
+              <td>Understanding why local Kirana stores dominate and why large hypermarkets face specific challenges in the region</td>
+            </tr>
+            <tr class="fragment" onclick="this.style.background='rgba(0,150,160,.06)'">
+              <td><strong>🔮 Predictive</strong></td>
+              <td>What will happen?</td>
+              <td>Forecasting demand for Walmart stores in different cities and identifying seasonal retail trends</td>
+            </tr>
+            <tr class="fragment" onclick="this.style.background='rgba(124,58,237,.06)'">
+              <td><strong>💡 Prescriptive</strong></td>
+              <td>What should we do?</td>
+              <td>Recommending hybrid retail models, localised product offerings, and supply chain improvements specific to each market</td>
+            </tr>
+            <tr class="fragment" onclick="this.style.background='rgba(220,38,38,.06)'">
+              <td><strong>🧠 Cognitive</strong></td>
+              <td>How can AI improve?</td>
+              <td>AI-powered demand forecasting, dynamic pricing, and smart supply chain management adapted to local conditions</td>
+            </tr>
+          </table>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 25 — INTERACTIVE MATCHING ACTIVITY           -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Review Activity</div><div class="sub">Match the Type</div></div>
+            <span class="pill">🎮 Click to Match</span>
+          </div>
+          <h2>Match the Scenario</h2>
+          <p style="font-size:17px;margin-bottom:16px;position:relative;z-index:2;">Click a <strong>scenario</strong> (left), then click the matching <strong>analytics type</strong> (right). See if you got it right!</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;position:relative;z-index:2;">
+            <div>
+              <h3 style="margin-bottom:10px;">Scenarios</h3>
+              <div class="match-item" id="s1" onclick="selectLeft(this,'s1')">🏥 A hospital wants to forecast how many ICU beds will be needed next winter</div>
+              <div class="match-item" id="s2" onclick="selectLeft(this,'s2')">🛒 An e-commerce site tracks which pages customers visited before buying</div>
+              <div class="match-item" id="s3" onclick="selectLeft(this,'s3')">🚗 Uber's app calculates the ideal route for each driver right now</div>
+              <div class="match-item" id="s4" onclick="selectLeft(this,'s4')">🏭 A factory finds that machines fail more often when humidity exceeds 80%</div>
+            </div>
+            <div>
+              <h3 style="margin-bottom:10px;">Analytics Types</h3>
+              <div class="match-item" id="t1" onclick="selectRight(this,'t1','s2')">📊 Descriptive — "What happened?"</div>
+              <div class="match-item" id="t2" onclick="selectRight(this,'t2','s4')">🔍 Diagnostic — "Why did it happen?"</div>
+              <div class="match-item" id="t3" onclick="selectRight(this,'t3','s1')">🔮 Predictive — "What will happen?"</div>
+              <div class="match-item" id="t4" onclick="selectRight(this,'t4','s3')">💡 Prescriptive — "What should be done?"</div>
+            </div>
+          </div>
+          <div id="match-feedback" style="position:relative;z-index:2;margin-top:14px;font-size:17px;font-weight:700;color:var(--accent);"></div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 26 — SUMMARY                                  -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide section-break">
+          <div class="slide-top">
+            <div class="meta"><div class="course" style="color:#fff;">Lecture 2 Wrap-Up</div></div>
+            <span class="pill">🎯 Key Takeaways</span>
+          </div>
+          <h1 style="color:#fff;margin-bottom:20px;position:relative;z-index:2;font-size:52px;">Lecture 2 Summary</h1>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;position:relative;z-index:2;">
+            <div class="info-card" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-left:5px solid var(--accent);">
+              <p style="color:#fff;font-size:16px;"><strong style="color:var(--gold);">📊 5 Types</strong><br>Descriptive → Diagnostic → Predictive → Prescriptive → Cognitive. Each builds on the previous.</p>
+            </div>
+            <div class="info-card" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-left:5px solid var(--teal);">
+              <p style="color:#fff;font-size:16px;"><strong style="color:var(--gold);">🏢 3 Use Cases</strong><br>Performance measurement, product development, and predictive maintenance are key enterprise applications.</p>
+            </div>
+            <div class="info-card" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-left:5px solid var(--gold);">
+              <p style="color:#fff;font-size:16px;"><strong style="color:var(--gold);">☁️ Cloud Benefits</strong><br>Faster integration, reduced duplication, and limitless scalability — plus real-time processing capability.</p>
+            </div>
+            <div class="info-card" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-left:5px solid #7c3aed;">
+              <p style="color:#fff;font-size:16px;"><strong style="color:var(--gold);">🔭 Future Trends</strong><br>Self-service analytics, deep learning proliferation, and data fabric adoption are the trends to watch.</p>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 27 — SECTION BREAK: LIFECYCLE TITLE          -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide section-break">
+          <div class="slide-top">
+            <div class="meta"><div class="course" style="color:#fff;">Metro College of Technology</div><div class="sub">Lecture 2 — Part 4</div></div>
+            <span class="pill">Section 4</span>
+          </div>
+          <div style="display:flex;flex-direction:column;justify-content:center;height:78%;position:relative;z-index:2;gap:16px;">
+            <div style="font-family:var(--mono);font-size:13px;text-transform:uppercase;letter-spacing:.15em;color:rgba(255,255,255,.4);">Part 4</div>
+            <h1 style="color:#fff;font-size:72px;">Data Analytics<br><span style="color:var(--gold);">Lifecycle</span></h1>
+            <p style="font-size:20px;color:rgba(255,255,255,.6);max-width:600px;">A cyclic, six-phase architecture that maps out how data is created, processed, modelled, and operationalised in the real world.</p>
+            <div style="display:flex;gap:12px;margin-top:8px;">
+              <span class="tag tag-red">6 Phases</span>
+              <span class="tag tag-teal">Cyclic Structure</span>
+              <span class="tag tag-gold">Iterative Process</span>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 28 — WHAT IS THE LIFECYCLE? (PART 1)         -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Data Analytics Lifecycle</div><div class="sub">Introduction</div></div>
+            <span class="pill">Core Concept</span>
+          </div>
+          <h2>What is the Data Analytics Lifecycle?</h2>
+          <div class="grid-2" style="align-items:start;">
+            <div>
+              <p>As data gets <strong>created, consumed, tested, processed, and reused</strong>, it goes through several phases during its entire life.</p>
+              <div class="callout" style="margin-top:16px;">
+                <p style="font-size:17px;">A <strong>data analytics architecture</strong> maps out these steps for data science professionals. It is a <em>cyclic structure</em> that encompasses all lifecycle phases — each stage with its own significance and characteristics.</p>
+              </div>
+              <div class="info-card fragment" style="margin-top:14px;">
+                <strong>🔄 Why Cyclic?</strong>
+                <p style="font-size:16px;margin-top:6px;">The circular form guides professionals to move <em>forward or backward</em> through stages. Based on new information, you may scrap research and return to the first step to redo the entire analysis.</p>
+              </div>
+            </div>
+            <div class="fragment">
+              <div class="card" style="border-top:5px solid var(--teal);background:linear-gradient(135deg,#f0fafe,#fff);">
+                <h3 style="color:var(--teal);">Key Characteristics</h3>
+                <div style="display:flex;flex-direction:column;gap:10px;margin-top:14px;">
+                  <div style="display:flex;align-items:center;gap:12px;padding:10px;background:#fff;border:1px solid var(--soft);border-radius:10px;">
+                    <span style="font-size:26px;">♻️</span>
+                    <div><strong>Iterative</strong><br><span style="font-size:14px;color:var(--muted);">Can move forward or backward at any point</span></div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:12px;padding:10px;background:#fff;border:1px solid var(--soft);border-radius:10px;">
+                    <span style="font-size:26px;">🧩</span>
+                    <div><strong>Flexible</strong><br><span style="font-size:14px;color:var(--muted);">Phases can be added, removed, or run in parallel</span></div>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:12px;padding:10px;background:#fff;border:1px solid var(--soft);border-radius:10px;">
+                    <span style="font-size:26px;">🎯</span>
+                    <div><strong>Goal-Driven</strong><br><span style="font-size:14px;color:var(--muted);">Every phase is anchored to the initial business objective</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 29 — LIFECYCLE FLEXIBILITY                   -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Data Analytics Lifecycle</div><div class="sub">Flexibility</div></div>
+            <span class="pill">Important Note</span>
+          </div>
+          <h2>Flexibility of the Lifecycle</h2>
+          <div class="grid-2" style="align-items:start;">
+            <div>
+              <div class="callout callout-gold">
+                <p style="font-size:17px;"><strong>No single universal structure exists.</strong> While experts discuss the lifecycle, there is still no uniformly agreed-upon architecture that every professional follows.</p>
+              </div>
+              <div style="margin-top:18px;display:flex;flex-direction:column;gap:10px;">
+                <div class="info-card fragment"><strong>➕ Add phases</strong> when the problem complexity demands extra steps beyond the basics</div>
+                <div class="info-card fragment"><strong>➖ Remove phases</strong> when a simpler analysis doesn't require every step</div>
+                <div class="info-card fragment"><strong>⚡ Parallel work</strong> — it's possible to work on multiple stages simultaneously</div>
+                <div class="info-card fragment"><strong>⏭️ Skip a phase</strong> entirely if it's not applicable to a specific project context</div>
+              </div>
+            </div>
+            <div class="fragment">
+              <div class="card" style="border-top:5px solid var(--accent);background:linear-gradient(135deg,#fff8f8,#fff);">
+                <h3 style="color:var(--accent);">Why These Phases?</h3>
+                <p style="font-size:16px;margin-top:10px;">The phases listed in this lecture represent the <strong>fundamentals of almost every data analysis process</strong>. Even in the most flexible implementations, these core activities will be present in some form.</p>
+                <div class="callout" style="margin-top:14px;background:#fff;border-left-color:var(--teal);">
+                  <p style="font-size:15px;color:var(--teal);">💡 Think of these phases as a <strong>baseline template</strong> — always adaptable to the needs of the specific project and organisation.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 30 — THE LIFECYCLE DIAGRAM (INTERACTIVE)     -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Data Analytics Lifecycle</div><div class="sub">Overview Diagram</div></div>
+            <span class="pill">🖱️ Click a phase to explore</span>
+          </div>
+          <h2>The 6-Phase Lifecycle</h2>
+          <div style="display:flex;gap:24px;align-items:center;position:relative;z-index:2;">
+            <!-- SVG Cycle Diagram -->
+            <div style="flex-shrink:0;width:370px;height:370px;position:relative;">
+              <svg viewBox="0 0 360 360" width="370" height="370" style="position:absolute;top:0;left:0;">
+                <!-- outer ring -->
+                <circle cx="180" cy="180" r="150" fill="none" stroke="#e2e8f0" stroke-width="3" stroke-dasharray="8 4"/>
+                <!-- arrows arc suggestion -->
+                <defs>
+                  <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+                    <path d="M0,0 L0,8 L8,4 z" fill="#cbd5e1"/>
+                  </marker>
+                </defs>
+                <!-- Phase nodes -->
+                <!-- 1. Discovery: top center -->
+                <circle cx="180" cy="36" r="34" fill="#fff" stroke="#c1121f" stroke-width="3" class="lc-node" id="lcn1" onclick="selectPhase(1)" style="cursor:pointer;transition:all .2s;"/>
+                <text x="180" y="30" text-anchor="middle" font-size="11" font-weight="700" fill="#c1121f" style="pointer-events:none;">1.</text>
+                <text x="180" y="43" text-anchor="middle" font-size="11" fill="#0d1b2a" style="pointer-events:none;">Discovery</text>
+                <!-- 2. Data Prep: top right -->
+                <circle cx="304" cy="110" r="34" fill="#fff" stroke="#0096a0" stroke-width="3" class="lc-node" id="lcn2" onclick="selectPhase(2)" style="cursor:pointer;"/>
+                <text x="304" y="104" text-anchor="middle" font-size="11" font-weight="700" fill="#0096a0" style="pointer-events:none;">2.</text>
+                <text x="304" y="117" text-anchor="middle" font-size="10" fill="#0d1b2a" style="pointer-events:none;">Data Prep</text>
+                <!-- 3. Model Plan: bottom right -->
+                <circle cx="304" cy="250" r="34" fill="#fff" stroke="#7c3aed" stroke-width="3" class="lc-node" id="lcn3" onclick="selectPhase(3)" style="cursor:pointer;"/>
+                <text x="304" y="244" text-anchor="middle" font-size="11" font-weight="700" fill="#7c3aed" style="pointer-events:none;">3.</text>
+                <text x="304" y="257" text-anchor="middle" font-size="10" fill="#0d1b2a" style="pointer-events:none;">Model Plan</text>
+                <!-- 4. Model Build: bottom center -->
+                <circle cx="180" cy="324" r="34" fill="#fff" stroke="#1d4ed8" stroke-width="3" class="lc-node" id="lcn4" onclick="selectPhase(4)" style="cursor:pointer;"/>
+                <text x="180" y="318" text-anchor="middle" font-size="11" font-weight="700" fill="#1d4ed8" style="pointer-events:none;">4.</text>
+                <text x="180" y="331" text-anchor="middle" font-size="10" fill="#0d1b2a" style="pointer-events:none;">Model Build</text>
+                <!-- 5. Communicate: bottom left -->
+                <circle cx="56" cy="250" r="34" fill="#fff" stroke="#16a34a" stroke-width="3" class="lc-node" id="lcn5" onclick="selectPhase(5)" style="cursor:pointer;"/>
+                <text x="56" y="244" text-anchor="middle" font-size="11" font-weight="700" fill="#16a34a" style="pointer-events:none;">5.</text>
+                <text x="56" y="257" text-anchor="middle" font-size="10" fill="#0d1b2a" style="pointer-events:none;">Communicate</text>
+                <!-- 6. Operationalise: top left -->
+                <circle cx="56" cy="110" r="34" fill="#fff" stroke="#f4a011" stroke-width="3" class="lc-node" id="lcn6" onclick="selectPhase(6)" style="cursor:pointer;"/>
+                <text x="56" y="104" text-anchor="middle" font-size="11" font-weight="700" fill="#b37400" style="pointer-events:none;">6.</text>
+                <text x="56" y="117" text-anchor="middle" font-size="10" fill="#0d1b2a" style="pointer-events:none;">Operationalise</text>
+                <!-- Center label -->
+                <text x="180" y="174" text-anchor="middle" font-size="12" fill="#5a6a7e" font-weight="600">Data Analytics</text>
+                <text x="180" y="190" text-anchor="middle" font-size="12" fill="#5a6a7e" font-weight="600">Lifecycle</text>
+              </svg>
+            </div>
+            <!-- Detail panel -->
+            <div style="flex:1;" id="lc-detail">
+              <div id="lc-default" style="padding:20px;">
+                <div class="callout callout-teal"><p style="font-size:16px;color:var(--teal);">⬅️ Click any phase on the diagram to see a description. The lifecycle is cyclic — you can move forward <em>or</em> backward based on new findings.</p></div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px;">
+                  <div style="padding:10px;border-radius:10px;background:#fff;border:2px solid #c1121f;text-align:center;font-size:14px;font-weight:700;color:#c1121f;cursor:pointer;" onclick="selectPhase(1)">1 · Discovery</div>
+                  <div style="padding:10px;border-radius:10px;background:#fff;border:2px solid #0096a0;text-align:center;font-size:14px;font-weight:700;color:#0096a0;cursor:pointer;" onclick="selectPhase(2)">2 · Data Prep</div>
+                  <div style="padding:10px;border-radius:10px;background:#fff;border:2px solid #7c3aed;text-align:center;font-size:14px;font-weight:700;color:#7c3aed;cursor:pointer;" onclick="selectPhase(3)">3 · Model Plan</div>
+                  <div style="padding:10px;border-radius:10px;background:#fff;border:2px solid #1d4ed8;text-align:center;font-size:14px;font-weight:700;color:#1d4ed8;cursor:pointer;" onclick="selectPhase(4)">4 · Model Build</div>
+                  <div style="padding:10px;border-radius:10px;background:#fff;border:2px solid #16a34a;text-align:center;font-size:14px;font-weight:700;color:#16a34a;cursor:pointer;" onclick="selectPhase(5)">5 · Communicate</div>
+                  <div style="padding:10px;border-radius:10px;background:#fff;border:2px solid #f4a011;text-align:center;font-size:14px;font-weight:700;color:#b37400;cursor:pointer;" onclick="selectPhase(6)">6 · Operationalise</div>
+                </div>
+              </div>
+              <div id="lc-p1" class="lc-phase-detail" style="display:none;padding:20px;">
+                <h3 style="color:#c1121f;">Phase 1 — Discovery &amp; Formation</h3>
+                <p style="margin-top:10px;font-size:16px;">Define the data's purpose, map out requirements, and formulate <strong>Initial Hypotheses (IHs)</strong>. Focus on enterprise needs, not the data itself. Assess tools needed for processing.</p>
+                <div class="callout" style="margin-top:12px;"><p style="font-size:15px;">🎯 Everything downstream is anchored to the goal set here.</p></div>
+              </div>
+              <div id="lc-p2" class="lc-phase-detail" style="display:none;padding:20px;">
+                <h3 style="color:#0096a0;">Phase 2 — Data Preparation &amp; Processing</h3>
+                <p style="margin-top:10px;font-size:16px;">Collect, process, and cleanse data. Ensure needed data is available. Collection methods: <strong>Data Acquisition</strong> (external), <strong>Data Entry</strong> (digital/manual), <strong>Signal Reception</strong> (IoT devices).</p>
+                <div class="callout callout-teal" style="margin-top:12px;"><p style="font-size:15px;color:var(--teal);">📊 Attention shifts from business requirements to information requirements.</p></div>
+              </div>
+              <div id="lc-p3" class="lc-phase-detail" style="display:none;padding:20px;">
+                <h3 style="color:#7c3aed;">Phase 3 — Model Planning (Design)</h3>
+                <p style="margin-top:10px;font-size:16px;">Build the model plan using <strong>ETL</strong>, <strong>ELT</strong>, or <strong>ETLT</strong> techniques. Identify relationships between data points, select key variables, and plan the model structure collaboratively.</p>
+                <div class="callout" style="margin-top:12px;border-left-color:#7c3aed;background:#faf5ff;"><p style="font-size:15px;color:#7c3aed;">🛠️ The blueprint for everything in Phase 4.</p></div>
+              </div>
+              <div id="lc-p4" class="lc-phase-detail" style="display:none;padding:20px;">
+                <h3 style="color:#1d4ed8;">Phase 4 — Model Building</h3>
+                <p style="margin-top:10px;font-size:16px;">Develop datasets for testing, training, and production. Execute the model using <strong>decision trees</strong>, <strong>regression</strong>, and <strong>neural networks</strong>. Run trial tests to verify output matches expectations.</p>
+                <div class="callout" style="margin-top:12px;border-left-color:#1d4ed8;background:#eff6ff;"><p style="font-size:15px;color:#1d4ed8;">🔬 Where theory becomes working reality.</p></div>
+              </div>
+              <div id="lc-p5" class="lc-phase-detail" style="display:none;padding:20px;">
+                <h3 style="color:#16a34a;">Phase 5 — Result Communication &amp; Publication</h3>
+                <p style="margin-top:10px;font-size:16px;">Collaborate with stakeholders to evaluate success/failure. Identify key findings, measure business value, and produce a narrative that conveys results clearly to non-technical audiences.</p>
+                <div class="callout" style="margin-top:12px;border-left-color:#16a34a;background:#f0fdf4;"><p style="font-size:15px;color:#16a34a;">📣 Story matters — data must be communicated, not just computed.</p></div>
+              </div>
+              <div id="lc-p6" class="lc-phase-detail" style="display:none;padding:20px;">
+                <h3 style="color:#b37400;">Phase 6 — Measuring Effectiveness</h3>
+                <p style="margin-top:10px;font-size:16px;">Provide detailed reports, technical documents to stakeholders. Move data to a live environment and monitor results. If outcomes deviate from Phase 1 goals, loop back and revise.</p>
+                <div class="callout callout-gold" style="margin-top:12px;"><p style="font-size:15px;color:#b37400;">📈 Closes the loop — or sends you back to refine it.</p></div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 31 — PHASE 1: DISCOVERY                      -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Data Analytics Lifecycle</div><div class="sub">Phase 1 of 6</div></div>
+            <span class="pill" style="background:rgba(193,18,31,.1);color:var(--accent);border-color:rgba(193,18,31,.2);">🔎 Phase 1 · Discovery</span>
+          </div>
+          <h2>Phase 1 — Data Discovery &amp; Formation</h2>
+          <div class="grid-2" style="align-items:start;">
+            <div>
+              <div class="callout">
+                <p style="font-size:17px;"><strong>Everything begins with a defined goal.</strong> In this phase, you define your data's purpose and how to achieve it by the end of the lifecycle.</p>
+              </div>
+              <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px;">
+                <div class="info-card fragment">
+                  <strong>📍 Where is data coming from?</strong>
+                  <p style="font-size:15px;margin-top:4px;">Map potential sources — internal databases, external feeds, IoT sensors, and manual inputs</p>
+                </div>
+                <div class="info-card fragment">
+                  <strong>📖 What story should data convey?</strong>
+                  <p style="font-size:15px;margin-top:4px;">Articulate the narrative your analytics should tell to stakeholders and decision-makers</p>
+                </div>
+                <div class="info-card fragment">
+                  <strong>💼 How does the organisation benefit?</strong>
+                  <p style="font-size:15px;margin-top:4px;">Focus on enterprise requirements related to data, not the data itself</p>
+                </div>
+              </div>
+            </div>
+            <div class="fragment">
+              <div class="card" style="border-top:5px solid var(--accent);background:linear-gradient(135deg,#fff8f8,#fff);">
+                <h3 style="color:var(--accent);">Key Deliverables from Phase 1</h3>
+                <div class="timeline" style="margin-top:14px;">
+                  <div class="timeline-item">
+                    <span class="tl-label">Business Problem</span>
+                    <div class="tl-body">Structured as an analytics challenge — clear, measurable, and time-bound</div>
+                  </div>
+                  <div class="timeline-item">
+                    <span class="tl-label">Initial Hypotheses (IHs)</span>
+                    <div class="tl-body">Formulated hypotheses to test and begin learning from the data</div>
+                  </div>
+                  <div class="timeline-item">
+                    <span class="tl-label">Tool Assessment</span>
+                    <div class="tl-body">Evaluated systems needed to read, organise, and process incoming data</div>
+                  </div>
+                  <div class="timeline-item" style="margin-bottom:0;">
+                    <span class="tl-label">Phase Goal</span>
+                    <div class="tl-body">All subsequent phases are anchored to the objective set here</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 32 — PHASE 2: DATA PREPARATION               -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Data Analytics Lifecycle</div><div class="sub">Phase 2 of 6</div></div>
+            <span class="pill" style="background:rgba(0,150,160,.1);color:var(--teal);border-color:rgba(0,150,160,.2);">🗂️ Phase 2 · Data Preparation</span>
+          </div>
+          <h2>Phase 2 — Data Preparation &amp; Processing</h2>
+          <div class="grid-2" style="align-items:start;">
+            <div>
+              <div class="callout callout-teal">
+                <p style="font-size:17px;">Attention shifts from <strong>business requirements</strong> to <strong>information requirements</strong>. This stage covers everything data-related — collecting, processing, and cleansing.</p>
+              </div>
+              <p style="margin-top:16px;font-size:17px;">Essential first step: ensure the data you need is <em>actually available</em> for processing.</p>
+              <h3 style="margin-top:18px;">Data Collection Methods</h3>
+              <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px;">
+                <div class="info-card fragment" style="border-left-color:var(--teal);">
+                  <strong>📥 Data Acquisition</strong>
+                  <p style="font-size:15px;margin-top:4px;">Accumulating information from <em>external</em> sources — APIs, third-party databases, public datasets</p>
+                </div>
+                <div class="info-card fragment" style="border-left-color:var(--teal);">
+                  <strong>⌨️ Data Entry</strong>
+                  <p style="font-size:15px;margin-top:4px;">Formulating recent data points using digital systems or manual entry techniques within the enterprise</p>
+                </div>
+                <div class="info-card fragment" style="border-left-color:var(--teal);">
+                  <strong>📡 Signal Reception</strong>
+                  <p style="font-size:15px;margin-top:4px;">Capturing information from digital devices — control systems, IoT sensors, smart instruments</p>
+                </div>
+              </div>
+            </div>
+            <div class="fragment">
+              <div class="card" style="border-top:5px solid var(--teal);background:linear-gradient(135deg,#f0fafe,#fff);">
+                <h3 style="color:var(--teal);">Data Cleansing Pipeline</h3>
+                <div style="margin-top:14px;display:flex;flex-direction:column;gap:0;">
+                  <div style="padding:10px 14px;border-radius:10px 10px 0 0;background:#fff;border:1px solid var(--soft);font-size:15px;display:flex;gap:10px;align-items:center;"><span>🔍</span><div><strong>Identify</strong> — missing values, duplicates, outliers</div></div>
+                  <div style="padding:10px 14px;border-top:none;background:rgba(0,150,160,.05);border:1px solid var(--soft);font-size:15px;display:flex;gap:10px;align-items:center;"><span>🧹</span><div><strong>Clean</strong> — remove noise, fill or drop nulls</div></div>
+                  <div style="padding:10px 14px;border-top:none;background:#fff;border:1px solid var(--soft);font-size:15px;display:flex;gap:10px;align-items:center;"><span>🔄</span><div><strong>Transform</strong> — normalise, encode, standardise</div></div>
+                  <div style="padding:10px 14px;border-top:none;background:rgba(0,150,160,.05);border:1px solid var(--soft);border-radius:0 0 10px 10px;font-size:15px;display:flex;gap:10px;align-items:center;"><span>✅</span><div><strong>Validate</strong> — verify quality before modelling</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 33 — PHASE 3: MODEL PLANNING                 -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Data Analytics Lifecycle</div><div class="sub">Phase 3 of 6</div></div>
+            <span class="pill" style="background:rgba(124,58,237,.1);color:#7c3aed;border-color:rgba(124,58,237,.2);">📐 Phase 3 · Model Planning</span>
+          </div>
+          <h2>Phase 3 — Design a Model</h2>
+          <div class="grid-2" style="align-items:start;">
+            <div>
+              <div class="callout" style="border-left-color:#7c3aed;background:#faf5ff;">
+                <p style="font-size:17px;">With business goals mapped and data collected, it's time to <strong>build a model</strong> that utilises the data to achieve those goals. This phase is about planning — not yet executing.</p>
+              </div>
+              <h3 style="margin-top:18px;">Data Loading Techniques</h3>
+              <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px;">
+                <div class="info-card fragment" style="border-left-color:#7c3aed;">
+                  <strong>ETL — Extract, Transform, Load</strong>
+                  <p style="font-size:15px;margin-top:4px;">Transforms data <em>first</em> using business rules, then loads it into the sandbox. Ideal when data quality rules are well-defined upfront.</p>
+                </div>
+                <div class="info-card fragment" style="border-left-color:#7c3aed;">
+                  <strong>ELT — Extract, Load, Transform</strong>
+                  <p style="font-size:15px;margin-top:4px;">Loads raw data into the sandbox <em>first</em>, then transforms. Better for large-scale cloud environments.</p>
+                </div>
+                <div class="info-card fragment" style="border-left-color:#7c3aed;">
+                  <strong>ETLT — Extract, Transform, Load, Transform</strong>
+                  <p style="font-size:15px;margin-top:4px;">A hybrid with <em>two transformation levels</em> — initial cleaning before load, deeper transformation after.</p>
+                </div>
+              </div>
+            </div>
+            <div class="fragment">
+              <div class="card" style="border-top:5px solid #7c3aed;background:linear-gradient(135deg,#faf5ff,#fff);">
+                <h3 style="color:#7c3aed;">ETL vs ELT Comparison</h3>
+                <table style="font-size:14px;margin-top:12px;">
+                  <tr><th>Aspect</th><th>ETL</th><th>ELT</th></tr>
+                  <tr><td>Transform timing</td><td>Before load</td><td>After load</td></tr>
+                  <tr><td>Best for</td><td>Structured data</td><td>Large/cloud data</td></tr>
+                  <tr><td>Flexibility</td><td>Lower</td><td>Higher</td></tr>
+                  <tr><td>Processing</td><td>External engine</td><td>Target system</td></tr>
+                </table>
+                <div class="callout" style="margin-top:14px;border-left-color:#7c3aed;background:#faf5ff;">
+                  <p style="font-size:14px;color:#7c3aed;">This phase ends with a collaboratively agreed <strong>methods, techniques, and workflow</strong> plan for model building.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 34 — PHASE 4: MODEL BUILDING                 -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Data Analytics Lifecycle</div><div class="sub">Phase 4 of 6</div></div>
+            <span class="pill" style="background:rgba(29,78,216,.1);color:#1d4ed8;border-color:rgba(29,78,216,.2);">🏗️ Phase 4 · Model Building</span>
+          </div>
+          <h2>Phase 4 — Model Building</h2>
+          <div class="grid-2" style="align-items:start;">
+            <div>
+              <div class="callout" style="border-left-color:#1d4ed8;background:#eff6ff;">
+                <p style="font-size:17px;">Data analytics experts <strong>meticulously build and operate</strong> the model designed in Phase 3. This involves developing datasets and executing trial runs.</p>
+              </div>
+              <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px;">
+                <div class="info-card fragment" style="border-left-color:#1d4ed8;">
+                  <strong>🗃️ Develop Datasets</strong>
+                  <p style="font-size:15px;margin-top:4px;">Separate datasets for <strong>training</strong> (teach the model), <strong>testing</strong> (validate performance), and <strong>production</strong> (deploy live)</p>
+                </div>
+                <div class="info-card fragment" style="border-left-color:#1d4ed8;">
+                  <strong>⚙️ Build &amp; Execute</strong>
+                  <p style="font-size:15px;margin-top:4px;">Use the plan from Phase 3 to implement the actual model with chosen tools and algorithms</p>
+                </div>
+                <div class="info-card fragment" style="border-left-color:#1d4ed8;">
+                  <strong>🧪 Trial Run</strong>
+                  <p style="font-size:15px;margin-top:4px;">Run the model against test data to observe whether outputs correspond to the expected datasets</p>
+                </div>
+              </div>
+            </div>
+            <div class="fragment">
+              <div class="card" style="border-top:5px solid #1d4ed8;background:linear-gradient(135deg,#eff6ff,#fff);">
+                <h3 style="color:#1d4ed8;">Key Model Building Techniques</h3>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;">
+                  <div style="padding:14px;background:#fff;border:1px solid var(--soft);border-radius:12px;text-align:center;">
+                    <div style="font-size:28px;margin-bottom:6px;">🌲</div>
+                    <div style="font-weight:700;font-size:15px;">Decision Trees</div>
+                    <div style="font-size:13px;color:var(--muted);margin-top:4px;">Classification and regression with branching logic</div>
+                  </div>
+                  <div style="padding:14px;background:#fff;border:1px solid var(--soft);border-radius:12px;text-align:center;">
+                    <div style="font-size:28px;margin-bottom:6px;">📈</div>
+                    <div style="font-weight:700;font-size:15px;">Logistic Regression</div>
+                    <div style="font-size:13px;color:var(--muted);margin-top:4px;">Binary outcome prediction (yes/no, fraud/not)</div>
+                  </div>
+                  <div style="padding:14px;background:#fff;border:1px solid var(--soft);border-radius:12px;text-align:center;">
+                    <div style="font-size:28px;margin-bottom:6px;">🧠</div>
+                    <div style="font-weight:700;font-size:15px;">Neural Networks</div>
+                    <div style="font-size:13px;color:var(--muted);margin-top:4px;">Complex pattern recognition, deep learning</div>
+                  </div>
+                  <div style="padding:14px;background:#fff;border:1px solid var(--soft);border-radius:12px;text-align:center;">
+                    <div style="font-size:28px;margin-bottom:6px;">🔍</div>
+                    <div style="font-weight:700;font-size:15px;">Model Validation</div>
+                    <div style="font-size:13px;color:var(--muted);margin-top:4px;">Cross-validation, accuracy, precision, recall</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 35 — PHASE 5: COMMUNICATION                  -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Data Analytics Lifecycle</div><div class="sub">Phase 5 of 6</div></div>
+            <span class="pill" style="background:rgba(22,163,74,.1);color:#16a34a;border-color:rgba(22,163,74,.2);">📣 Phase 5 · Communication</span>
+          </div>
+          <h2>Phase 5 — Result Communication &amp; Publication</h2>
+          <div class="grid-2" style="align-items:start;">
+            <div>
+              <div class="callout" style="border-left-color:#16a34a;background:#f0fdf4;">
+                <p style="font-size:17px;">This is the moment of truth — check whether the goal set in <strong>Phase 1</strong> was achieved by the model tested in Phase 4.</p>
+              </div>
+              <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px;">
+                <div class="info-card fragment" style="border-left-color:#16a34a;">
+                  <strong>🤝 Collaborate with Stakeholders</strong>
+                  <p style="font-size:15px;margin-top:4px;">Jointly determine with major stakeholders whether the project results are a <em>success or failure</em> against defined criteria</p>
+                </div>
+                <div class="info-card fragment" style="border-left-color:#16a34a;">
+                  <strong>🔑 Identify Key Findings</strong>
+                  <p style="font-size:15px;margin-top:4px;">Extract the most significant insights and measure the <strong>business value</strong> associated with the result</p>
+                </div>
+                <div class="info-card fragment" style="border-left-color:#16a34a;">
+                  <strong>📝 Produce a Narrative</strong>
+                  <p style="font-size:15px;margin-top:4px;">Create a clear story summarising and conveying results — data literacy matters for non-technical audiences</p>
+                </div>
+              </div>
+            </div>
+            <div class="fragment">
+              <div class="card" style="border-top:5px solid #16a34a;background:linear-gradient(135deg,#f0fdf4,#fff);">
+                <h3 style="color:#16a34a;">What Makes a Great Data Story?</h3>
+                <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px;">
+                  <div style="display:flex;gap:12px;padding:10px;background:#fff;border:1px solid var(--soft);border-radius:10px;align-items:start;">
+                    <span style="font-size:22px;flex-shrink:0;">📊</span>
+                    <div><strong>Visuals</strong><br><span style="font-size:13px;color:var(--muted);">Charts and dashboards that make insights immediately clear</span></div>
+                  </div>
+                  <div style="display:flex;gap:12px;padding:10px;background:#fff;border:1px solid var(--soft);border-radius:10px;align-items:start;">
+                    <span style="font-size:22px;flex-shrink:0;">🎯</span>
+                    <div><strong>Context</strong><br><span style="font-size:13px;color:var(--muted);">Link findings back to the original business goal</span></div>
+                  </div>
+                  <div style="display:flex;gap:12px;padding:10px;background:#fff;border:1px solid var(--soft);border-radius:10px;align-items:start;">
+                    <span style="font-size:22px;flex-shrink:0;">💡</span>
+                    <div><strong>Recommendations</strong><br><span style="font-size:13px;color:var(--muted);">Not just "what" happened — but "what should be done next"</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 36 — PHASE 6: MEASURING EFFECTIVENESS        -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Data Analytics Lifecycle</div><div class="sub">Phase 6 of 6</div></div>
+            <span class="pill" style="background:rgba(244,160,17,.15);color:#b37400;border-color:rgba(244,160,17,.3);">📏 Phase 6 · Effectiveness</span>
+          </div>
+          <h2>Phase 6 — Measuring Effectiveness</h2>
+          <div class="grid-2" style="align-items:start;">
+            <div>
+              <div class="callout callout-gold">
+                <p style="font-size:17px;">The final step — deploy to a <strong>live environment</strong>, monitor results, and determine if the analysis achieved the intended business goal from Phase 1.</p>
+              </div>
+              <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px;">
+                <div class="info-card fragment" style="border-left-color:var(--gold);">
+                  <strong>📄 Detailed Report Package</strong>
+                  <p style="font-size:15px;margin-top:4px;">Deliver key findings, coding documentation, briefings, and technical papers to all stakeholders</p>
+                </div>
+                <div class="info-card fragment" style="border-left-color:var(--gold);">
+                  <strong>🚀 Move to Live Environment</strong>
+                  <p style="font-size:15px;margin-top:4px;">Transfer from sandbox to production; monitor closely to observe whether real-world results match expected outcomes</p>
+                </div>
+                <div class="info-card fragment" style="border-left-color:var(--accent);">
+                  <strong>🔄 If Results Deviate → Loop Back</strong>
+                  <p style="font-size:15px;margin-top:4px;">If outcomes don't match Phase 1 intent, move <em>backward</em> to any previous phase, change inputs, and generate a different output</p>
+                </div>
+              </div>
+            </div>
+            <div class="fragment">
+              <div class="card" style="border-top:5px solid var(--gold);background:linear-gradient(135deg,#fffbf0,#fff);">
+                <h3 style="color:#b37400;">Success vs. Iteration Decision</h3>
+                <div style="margin-top:14px;display:flex;flex-direction:column;gap:0;">
+                  <div style="padding:14px;border-radius:10px 10px 0 0;background:#fff;border:1px solid var(--soft);font-size:15px;">
+                    <strong>✅ Results match goal?</strong><br>
+                    <span style="color:var(--muted);">→ Finalise reports, deploy, and operationalise the model</span>
+                  </div>
+                  <div style="padding:14px;border-top:none;background:rgba(193,18,31,.04);border:1px solid rgba(193,18,31,.2);border-radius:0 0 10px 10px;font-size:15px;">
+                    <strong>❌ Results deviate from goal?</strong><br>
+                    <span style="color:var(--muted);">→ Return to Phase 1, 2, 3, or 4 — revise hypotheses, data, or model design</span>
+                  </div>
+                </div>
+                <div class="callout callout-teal" style="margin-top:14px;">
+                  <p style="font-size:14px;color:var(--teal);">💡 This is what makes the lifecycle <em>cyclic</em> — improvement is always possible.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE 37 — CLASS EXERCISE: COFFEE CHAIN            -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Class Activity</div><div class="sub">Group Exercise</div></div>
+            <span class="pill">☕ Case Study</span>
+          </div>
+          <h2>Class Exercise — Coffee &amp; Fast Food Chain</h2>
+          <div class="grid-2" style="align-items:start;">
+            <div>
+              <div class="callout" style="font-size:16px;">
+                <p><strong>Scenario:</strong> A coffee and fast food chain wants to devise new ways to <strong>better engage customers</strong> and improve overall sales. Competitors are launching new brewed coffee flavours, ice creams, and enticing menu items.</p>
+              </div>
+              <div style="margin-top:16px;">
+                <h3 style="margin-bottom:10px;">As a Merchandising Business Analyst, discuss:</h3>
+                <div style="display:flex;flex-direction:column;gap:10px;">
+                  <div class="info-card fragment" style="border-left-color:var(--accent);">
+                    <strong>📊 Internal Data Use</strong>
+                    <p style="font-size:15px;margin-top:4px;">How would you use internal data to help stakeholders create a plan for the next few months to <em>match competitors</em>?</p>
+                  </div>
+                  <div class="info-card fragment" style="border-left-color:var(--teal);">
+                    <strong>🎯 Customer Campaigns</strong>
+                    <p style="font-size:15px;margin-top:4px;">What customer campaigns can you create to improve engagement and retain customers from switching to competitors?</p>
+                  </div>
+                </div>
+              </div>
+              <div class="callout callout-gold" style="margin-top:14px;">
+                <p style="font-size:14px;">⏱️ <strong>10 minutes</strong> — Apply the Lifecycle phases to structure your answer. Which phase should the chain be in right now?</p>
+              </div>
+            </div>
+            <div>
+              <div class="card fragment" style="border-top:5px solid var(--accent);">
+                <h3 style="color:var(--accent);margin-bottom:12px;">🖱️ Click to reveal lifecycle guidance</h3>
+                <div style="display:flex;flex-direction:column;gap:8px;" id="coffee-steps">
+                  <div class="scenario-card" onclick="this.classList.toggle('revealed')">
+                    <div class="scenario-label">Phase 1 · Discovery</div>
+                    <div class="scenario-title">🔎 Define the goal</div>
+                    <div class="scenario-body">Goal: "Increase monthly sales by 15% in Q2 by introducing 3 new competitive items and launching a loyalty campaign." Map internal POS data, loyalty app, and competitor intelligence as sources.</div>
+                  </div>
+                  <div class="scenario-card" onclick="this.classList.toggle('revealed')">
+                    <div class="scenario-label">Phase 2 · Data Prep</div>
+                    <div class="scenario-title">🗂️ Gather &amp; clean data</div>
+                    <div class="scenario-body">Pull transaction history, loyalty program data, social media mentions, and competitor menu scans. Clean for duplicates, missing timestamps, and inconsistent product codes.</div>
+                  </div>
+                  <div class="scenario-card" onclick="this.classList.toggle('revealed')">
+                    <div class="scenario-label">Phases 3–4 · Model</div>
+                    <div class="scenario-title">📐 Plan &amp; build</div>
+                    <div class="scenario-body">Build a demand forecasting model to predict which new menu items will perform best by region, and a customer segmentation model to identify campaign targets.</div>
+                  </div>
+                  <div class="scenario-card" onclick="this.classList.toggle('revealed')">
+                    <div class="scenario-label">Phases 5–6 · Communicate</div>
+                    <div class="scenario-title">📣 Present &amp; measure</div>
+                    <div class="scenario-body">Present findings to menu team and marketing. Launch pilot campaign, monitor sales uplift vs. baseline. Loop back to Phase 3 if new item uptake is below target.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE — SECTION BREAK: DATA DRIVEN DECISION MAKING  -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide section-break">
+          <div class="slide-top">
+            <div class="meta"><div class="course" style="color:#fff;">Metro College of Technology</div><div class="sub">Lecture 2 · Part 3</div></div>
+            <span class="pill">📊 New Section</span>
+          </div>
+          <div style="display:flex;flex-direction:column;justify-content:center;height:75%;gap:14px;position:relative;z-index:2;">
+            <div style="font-family:var(--mono);font-size:14px;letter-spacing:.15em;text-transform:uppercase;color:rgba(255,255,255,.5);">Introduction to Data Science</div>
+            <h1 style="font-size:72px;color:#fff;line-height:1.0;">Data Driven<br><span style="color:var(--gold);">Decision Making</span></h1>
+            <p style="font-size:20px;color:rgba(255,255,255,.65);max-width:680px;">How organisations harness data to make smarter, faster, and more confident decisions — replacing guesswork with evidence.</p>
+            <div style="display:flex;gap:12px;margin-top:12px;">
+              <span class="tag tag-red">Evidence over Intuition</span>
+              <span class="tag tag-teal">DDDM Process</span>
+              <span class="tag tag-gold">Real-World Cases</span>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE — WHAT IS DDDM?                               -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Data Driven Decision Making</div><div class="sub">Definition</div></div>
+            <span class="pill">🎯 What is DDDM?</span>
+          </div>
+          <h2>What is Data Driven Decision Making?</h2>
+          <div class="grid-2" style="align-items:start;">
+            <div>
+              <div class="callout">
+                <p><strong>Data Driven Decision Making (DDDM)</strong> is the practice of basing strategic and operational decisions on <em>analysed data and measurable evidence</em> rather than intuition, experience alone, or guesswork.</p>
+              </div>
+              <div style="margin-top:18px;display:flex;flex-direction:column;gap:10px;">
+                <div class="info-card fragment">
+                  <strong>📌 It starts with a question</strong>
+                  <p style="font-size:15px;margin-top:4px;">Every DDDM cycle begins with a clearly defined business question or problem that requires a decision.</p>
+                </div>
+                <div class="info-card fragment">
+                  <strong>📊 Data is the input</strong>
+                  <p style="font-size:15px;margin-top:4px;">Relevant, high-quality data is gathered from internal and external sources and analysed to extract insights.</p>
+                </div>
+                <div class="info-card fragment">
+                  <strong>✅ Action is the output</strong>
+                  <p style="font-size:15px;margin-top:4px;">Insights translate directly into decisions, strategies, or recommendations that can be measured and reviewed.</p>
+                </div>
+              </div>
+            </div>
+            <div class="fragment">
+              <div class="card" style="border-top:5px solid var(--accent);background:linear-gradient(135deg,#fff8f8,#fff);">
+                <h3 style="color:var(--accent);">Intuition vs. Data-Driven</h3>
+                <table style="font-size:15px;margin-top:12px;">
+                  <tr><th>Aspect</th><th>Intuition-Based</th><th>Data-Driven</th></tr>
+                  <tr><td>Basis</td><td>Gut feeling / experience</td><td>Evidence &amp; analysis</td></tr>
+                  <tr><td>Speed</td><td>Fast (but risky)</td><td>Structured, reliable</td></tr>
+                  <tr><td>Repeatability</td><td>Low</td><td>High</td></tr>
+                  <tr><td>Accountability</td><td>Difficult to audit</td><td>Fully traceable</td></tr>
+                  <tr><td>Scalability</td><td>Limited</td><td>Scales with data</td></tr>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE — THE DDDM PROCESS                            -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Data Driven Decision Making</div><div class="sub">The Process</div></div>
+            <span class="pill">🔄 DDDM Steps</span>
+          </div>
+          <h2>The DDDM Process</h2>
+          <p style="font-size:17px;margin-bottom:18px;position:relative;z-index:2;">Data driven decisions follow a repeatable cycle — each step builds directly on the last.</p>
+          <div style="display:flex;gap:0;align-items:stretch;position:relative;z-index:2;height:460px;">
+            <div style="flex:1;display:flex;flex-direction:column;gap:0;">
+              <div class="fragment" style="flex:1;padding:16px 20px;background:rgba(193,18,31,.07);border:2px solid rgba(193,18,31,.2);border-radius:14px 14px 0 0;display:flex;align-items:center;gap:14px;">
+                <div style="font-size:32px;min-width:42px;text-align:center;">❓</div>
+                <div><div style="font-weight:800;font-size:16px;color:var(--accent);">Step 1 — Define the Question</div><div style="font-size:14px;color:var(--muted);margin-top:4px;">Identify the specific decision to be made. A vague problem produces vague data. Be precise: "Which product category drives most churn?"</div></div>
+              </div>
+              <div class="fragment" style="flex:1;padding:16px 20px;background:rgba(0,150,160,.07);border:2px solid rgba(0,150,160,.2);border-top:none;display:flex;align-items:center;gap:14px;">
+                <div style="font-size:32px;min-width:42px;text-align:center;">🗂️</div>
+                <div><div style="font-weight:800;font-size:16px;color:var(--teal);">Step 2 — Collect Relevant Data</div><div style="font-size:14px;color:var(--muted);margin-top:4px;">Gather internal (CRM, ERP, sales logs) and external (market reports, surveys, social media) data aligned to the question.</div></div>
+              </div>
+              <div class="fragment" style="flex:1;padding:16px 20px;background:rgba(124,58,237,.07);border:2px solid rgba(124,58,237,.2);border-top:none;display:flex;align-items:center;gap:14px;">
+                <div style="font-size:32px;min-width:42px;text-align:center;">🧹</div>
+                <div><div style="font-weight:800;font-size:16px;color:#7c3aed;">Step 3 — Clean &amp; Prepare Data</div><div style="font-size:14px;color:var(--muted);margin-top:4px;">Remove duplicates, handle missing values, standardise formats. Poor data quality leads to poor decisions regardless of how good the analysis is.</div></div>
+              </div>
+              <div class="fragment" style="flex:1;padding:16px 20px;background:rgba(29,78,216,.07);border:2px solid rgba(29,78,216,.2);border-top:none;display:flex;align-items:center;gap:14px;">
+                <div style="font-size:32px;min-width:42px;text-align:center;">📊</div>
+                <div><div style="font-weight:800;font-size:16px;color:#1d4ed8;">Step 4 — Analyse Data</div><div style="font-size:14px;color:var(--muted);margin-top:4px;">Apply descriptive, diagnostic, predictive, or prescriptive analytics depending on the type of decision needed.</div></div>
+              </div>
+              <div class="fragment" style="flex:1;padding:16px 20px;background:rgba(22,163,74,.07);border:2px solid rgba(22,163,74,.2);border-top:none;display:flex;align-items:center;gap:14px;">
+                <div style="font-size:32px;min-width:42px;text-align:center;">💡</div>
+                <div><div style="font-weight:800;font-size:16px;color:#16a34a;">Step 5 — Interpret &amp; Decide</div><div style="font-size:14px;color:var(--muted);margin-top:4px;">Translate findings into a clear recommendation. Communicate using visualisations and narratives tailored to stakeholders.</div></div>
+              </div>
+              <div class="fragment" style="flex:1;padding:16px 20px;background:rgba(244,160,17,.1);border:2px solid rgba(244,160,17,.3);border-top:none;border-radius:0 0 14px 14px;display:flex;align-items:center;gap:14px;">
+                <div style="font-size:32px;min-width:42px;text-align:center;">📈</div>
+                <div><div style="font-weight:800;font-size:16px;color:#b37400;">Step 6 — Monitor &amp; Refine</div><div style="font-size:14px;color:var(--muted);margin-top:4px;">Track outcomes against the original goal. If results deviate, loop back with new data to refine the decision.</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE — KEY BENEFITS OF DDDM                        -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Data Driven Decision Making</div><div class="sub">Why It Matters</div></div>
+            <span class="pill">🚀 Benefits</span>
+          </div>
+          <h2>Why Use Data Driven Decision Making?</h2>
+          <div class="grid-3" style="align-items:stretch;margin-top:6px;">
+            <div class="card fragment" style="border-top:6px solid var(--accent);display:flex;flex-direction:column;">
+              <div style="font-size:32px;margin-bottom:10px;">🎯</div>
+              <h3 style="color:var(--accent);">Improved Accuracy</h3>
+              <p style="font-size:15px;color:var(--muted);margin-top:8px;flex:1;">Decisions backed by data are more likely to reflect reality. Reduces the impact of cognitive biases and personal preferences on outcomes.</p>
+              <div class="callout" style="margin-top:12px;padding:10px 14px;font-size:14px;"><strong>Example:</strong> Netflix uses viewing data to decide which shows to renew — not executive instinct.</div>
+            </div>
+            <div class="card fragment" style="border-top:6px solid var(--teal);display:flex;flex-direction:column;">
+              <div style="font-size:32px;margin-bottom:10px;">⚡</div>
+              <h3 style="color:var(--teal);">Faster Decisions</h3>
+              <p style="font-size:15px;color:var(--muted);margin-top:8px;flex:1;">Pre-built dashboards and real-time analytics allow managers to act quickly without waiting for manual reports. Competitive edge in fast-moving markets.</p>
+              <div class="callout callout-teal" style="margin-top:12px;padding:10px 14px;font-size:14px;"><strong>Example:</strong> Amazon's pricing algorithm adjusts millions of prices daily using real-time demand signals.</div>
+            </div>
+            <div class="card fragment" style="border-top:6px solid var(--gold);display:flex;flex-direction:column;">
+              <div style="font-size:32px;margin-bottom:10px;">🔁</div>
+              <h3 style="color:#b37400;">Continuous Improvement</h3>
+              <p style="font-size:15px;color:var(--muted);margin-top:8px;flex:1;">DDDM creates a feedback loop. Each decision generates new data, which improves the quality of future decisions over time.</p>
+              <div class="callout callout-gold" style="margin-top:12px;padding:10px 14px;font-size:14px;"><strong>Example:</strong> Spotify's recommendation engine improves with every song skip, play, or playlist save.</div>
+            </div>
+            <div class="card fragment" style="border-top:6px solid #7c3aed;display:flex;flex-direction:column;">
+              <div style="font-size:32px;margin-bottom:10px;">💰</div>
+              <h3 style="color:#7c3aed;">Cost Reduction</h3>
+              <p style="font-size:15px;color:var(--muted);margin-top:8px;flex:1;">Identifying inefficiencies and waste through data analysis reduces operational costs. Poor decisions are expensive — data de-risks them.</p>
+            </div>
+            <div class="card fragment" style="border-top:6px solid #1d4ed8;display:flex;flex-direction:column;">
+              <div style="font-size:32px;margin-bottom:10px;">👥</div>
+              <h3 style="color:#1d4ed8;">Customer Centricity</h3>
+              <p style="font-size:15px;color:var(--muted);margin-top:8px;flex:1;">Analysing customer behaviour allows organisations to personalise experiences, anticipate needs, and increase satisfaction.</p>
+            </div>
+            <div class="card fragment" style="border-top:6px solid #16a34a;display:flex;flex-direction:column;">
+              <div style="font-size:32px;margin-bottom:10px;">🛡️</div>
+              <h3 style="color:#16a34a;">Risk Management</h3>
+              <p style="font-size:15px;color:var(--muted);margin-top:8px;flex:1;">Historical data reveals risk patterns. Predictive analytics allows organisations to anticipate failures or downturns before they occur.</p>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE — BARRIERS TO DDDM                            -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Data Driven Decision Making</div><div class="sub">Challenges</div></div>
+            <span class="pill">⚠️ Barriers</span>
+          </div>
+          <h2>Barriers to Data Driven Decision Making</h2>
+          <p style="font-size:17px;margin-bottom:16px;position:relative;z-index:2;">Despite its advantages, many organisations struggle to fully adopt DDDM. Understanding barriers is the first step to overcoming them.</p>
+          <div class="grid-2" style="align-items:start;">
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div class="info-card fragment" style="border-left-color:var(--accent);">
+                <strong>🗄️ Poor Data Quality</strong>
+                <p style="font-size:15px;margin-top:4px;">Incomplete, inconsistent, or outdated data leads to flawed analysis. "Garbage in, garbage out" — the quality of decisions is bounded by data quality.</p>
+              </div>
+              <div class="info-card fragment" style="border-left-color:var(--accent);">
+                <strong>🏢 Organisational Silos</strong>
+                <p style="font-size:15px;margin-top:4px;">Data trapped in separate departments prevents a unified view. Finance, sales, and operations may each hold key pieces that are never combined.</p>
+              </div>
+              <div class="info-card fragment" style="border-left-color:var(--accent);">
+                <strong>🙅 Resistance to Change</strong>
+                <p style="font-size:15px;margin-top:4px;">Employees and managers accustomed to intuition-based decisions may distrust or ignore data insights, especially when they challenge existing beliefs.</p>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div class="info-card fragment" style="border-left-color:var(--teal);">
+                <strong>🔐 Privacy &amp; Compliance</strong>
+                <p style="font-size:15px;margin-top:4px;">Regulations such as GDPR and PIPEDA restrict how personal data can be collected and used. Compliance requirements shape what data is even available for analysis.</p>
+              </div>
+              <div class="info-card fragment" style="border-left-color:var(--teal);">
+                <strong>🧩 Skills Gap</strong>
+                <p style="font-size:15px;margin-top:4px;">Many organisations lack staff trained in data literacy, analytics, or interpretation. A decision is only as good as the person reading the data.</p>
+              </div>
+              <div class="fragment">
+                <div class="callout callout-gold">
+                  <p style="font-size:16px;"><strong>💡 Key Insight:</strong> Organisations that invest in <em>data literacy training</em> across all levels — not just technical teams — see the highest ROI from DDDM initiatives.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE — DDDM IN PRACTICE: REAL WORLD CASES         -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Data Driven Decision Making</div><div class="sub">Real-World Cases</div></div>
+            <span class="pill">🌍 Industry Examples</span>
+          </div>
+          <h2>DDDM in Practice</h2>
+          <div class="grid-2" style="align-items:start;gap:20px;">
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div class="analytics-card fragment" style="border-color:rgba(193,18,31,.3);">
+                <div style="display:flex;gap:12px;align-items:center;">
+                  <div style="font-size:32px;">🛒</div>
+                  <div>
+                    <div class="analytics-title" style="color:var(--accent);">Retail — Walmart</div>
+                    <div class="analytics-question">Inventory &amp; Demand Forecasting</div>
+                  </div>
+                </div>
+                <p style="font-size:14px;color:var(--muted);margin-top:8px;">Walmart analyses over 1 million customer transactions per hour. Before Hurricane Frances in 2004, data showed beer and Pop-Tarts were top pre-storm sellers — stores pre-stocked accordingly, increasing sales significantly.</p>
+              </div>
+              <div class="analytics-card fragment" style="border-color:rgba(0,150,160,.3);">
+                <div style="display:flex;gap:12px;align-items:center;">
+                  <div style="font-size:32px;">🏥</div>
+                  <div>
+                    <div class="analytics-title" style="color:var(--teal);">Healthcare — NHS</div>
+                    <div class="analytics-question">Patient Flow &amp; Resource Planning</div>
+                  </div>
+                </div>
+                <p style="font-size:14px;color:var(--muted);margin-top:8px;">The UK's NHS uses patient admission data and predictive models to anticipate A&amp;E demand by day and hour. This reduces waiting times and ensures staffing levels match real need.</p>
+              </div>
+              <div class="analytics-card fragment" style="border-color:rgba(124,58,237,.3);">
+                <div style="display:flex;gap:12px;align-items:center;">
+                  <div style="font-size:32px;">🏦</div>
+                  <div>
+                    <div class="analytics-title" style="color:#7c3aed;">Finance — JPMorgan Chase</div>
+                    <div class="analytics-question">Fraud Detection</div>
+                  </div>
+                </div>
+                <p style="font-size:14px;color:var(--muted);margin-top:8px;">Processes billions of transactions using machine learning models that flag anomalies in real time. Data-driven rules have reduced false positives while catching actual fraud patterns faster than manual review ever could.</p>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div class="analytics-card fragment" style="border-color:rgba(244,160,17,.4);">
+                <div style="display:flex;gap:12px;align-items:center;">
+                  <div style="font-size:32px;">⚽</div>
+                  <div>
+                    <div class="analytics-title" style="color:#b37400;">Sports — FC Barcelona</div>
+                    <div class="analytics-question">Player Performance &amp; Recruitment</div>
+                  </div>
+                </div>
+                <p style="font-size:14px;color:var(--muted);margin-top:8px;">Uses match data, GPS tracking, and biometric sensors to evaluate player performance and reduce injury risk. Transfer decisions are increasingly supported by analytics rather than scouts alone.</p>
+              </div>
+              <div class="analytics-card fragment" style="border-color:rgba(29,78,216,.3);">
+                <div style="display:flex;gap:12px;align-items:center;">
+                  <div style="font-size:32px;">✈️</div>
+                  <div>
+                    <div class="analytics-title" style="color:#1d4ed8;">Aviation — Delta Airlines</div>
+                    <div class="analytics-question">Operations &amp; Delay Reduction</div>
+                  </div>
+                </div>
+                <p style="font-size:14px;color:var(--muted);margin-top:8px;">Delta analyses weather, crew availability, gate utilisation, and maintenance logs simultaneously to proactively reroute flights and minimise delays — saving millions annually in operational costs.</p>
+              </div>
+              <div class="callout callout-teal fragment" style="margin-top:4px;">
+                <p style="font-size:15px;">📌 <strong>Common thread:</strong> In every case, organisations first defined a clear decision to make, then gathered the right data — not all data — to answer it.</p>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE — BUILDING A DATA DRIVEN CULTURE              -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Data Driven Decision Making</div><div class="sub">Culture &amp; Strategy</div></div>
+            <span class="pill">🏗️ Building the Culture</span>
+          </div>
+          <h2>Building a Data Driven Culture</h2>
+          <p style="font-size:17px;margin-bottom:16px;position:relative;z-index:2;">DDDM is not just a technical initiative — it requires a shift in <strong>mindset, process, and leadership</strong> across the entire organisation.</p>
+          <div class="grid-2" style="align-items:start;">
+            <div>
+              <div class="timeline">
+                <div class="timeline-item">
+                  <span class="tl-label" style="background:var(--accent);">1 · Leadership Buy-In</span>
+                  <div class="tl-body">Executives must model data-driven behaviour. When leadership asks for data before making decisions, teams follow. "HiPPO effect" (Highest Paid Person's Opinion) is the enemy of DDDM.</div>
+                </div>
+                <div class="timeline-item">
+                  <span class="tl-label" style="background:var(--teal);">2 · Data Literacy for All</span>
+                  <div class="tl-body">Everyone — from analysts to HR to finance — should understand how to read a dashboard, interpret a trend, and question a data source. Literacy does not mean coding skills.</div>
+                </div>
+                <div class="timeline-item">
+                  <span class="tl-label" style="background:#7c3aed;">3 · Accessible Infrastructure</span>
+                  <div class="tl-body">Data must be findable and usable by the right people at the right time. Data catalogues, self-service BI tools (Tableau, Power BI), and cloud platforms lower the barrier to entry.</div>
+                </div>
+                <div class="timeline-item" style="margin-bottom:0;">
+                  <span class="tl-label" style="background:#16a34a;">4 · Incentivise Evidence</span>
+                  <div class="tl-body">Reward teams that propose decisions with supporting data. Build data checkpoints into project approval and strategy review processes.</div>
+                </div>
+              </div>
+            </div>
+            <div class="fragment">
+              <div class="card" style="border-top:5px solid var(--gold);background:linear-gradient(135deg,#fffbf0,#fff);">
+                <h3 style="color:#b37400;">Data Maturity Levels</h3>
+                <div style="margin-top:14px;display:flex;flex-direction:column;gap:0;">
+                  <div style="padding:10px 14px;border-radius:10px 10px 0 0;background:rgba(220,38,38,.07);border:1px solid rgba(220,38,38,.2);font-size:15px;"><strong style="color:#dc2626;">Level 1 — Data Aware:</strong> Data exists but is siloed and inconsistent. Decisions still largely intuition-based.</div>
+                  <div style="padding:10px 14px;border-top:none;background:rgba(245,158,11,.07);border:1px solid rgba(245,158,11,.2);font-size:15px;"><strong style="color:#b37400;">Level 2 — Data Informed:</strong> Some decisions use reports, but only retrospectively. Analytics is reactive.</div>
+                  <div style="padding:10px 14px;border-top:none;background:rgba(0,150,160,.07);border:1px solid rgba(0,150,160,.2);font-size:15px;"><strong style="color:var(--teal);">Level 3 — Data Driven:</strong> Decisions are consistently backed by data. Predictive analytics informs strategy.</div>
+                  <div style="padding:10px 14px;border-top:none;background:rgba(22,163,74,.08);border:1px solid rgba(22,163,74,.2);border-radius:0 0 10px 10px;font-size:15px;"><strong style="color:#16a34a;">Level 4 — Data Native:</strong> Data is embedded in every process. AI and automation drive continuous optimisation.</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE — DDDM QUIZ                                   -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Data Driven Decision Making</div><div class="sub">Check Your Understanding</div></div>
+            <span class="pill">🧩 Quick Quiz</span>
+          </div>
+          <h2>Quiz — DDDM in Action</h2>
+          <p style="position:relative;z-index:2;margin-bottom:16px;font-size:18px;"><strong>Scenario:</strong> A supermarket chain notices that weekend sales are consistently 30% lower than expected. The CEO wants to act immediately based on a hunch that prices are too high. A data analyst recommends a structured review. What is the correct DDDM first step?</p>
+          <div id="quiz2" style="position:relative;z-index:2;">
+            <div class="quiz-option" onclick="checkQuizDDDM(this,'wrong','2')"><span style="font-size:20px;">💸</span> Immediately cut all prices by 10% across the store</div>
+            <div class="quiz-option" onclick="checkQuizDDDM(this,'wrong','2')"><span style="font-size:20px;">📣</span> Launch a social media marketing campaign to boost weekend foot traffic</div>
+            <div class="quiz-option" onclick="checkQuizDDDM(this,'correct','2')"><span style="font-size:20px;">❓</span> Define the specific question: "Why are weekend sales 30% below forecast?" then collect relevant data</div>
+            <div class="quiz-option" onclick="checkQuizDDDM(this,'wrong','2')"><span style="font-size:20px;">🤝</span> Hire a consultant to audit the business strategy</div>
+          </div>
+          <div id="quiz2-feedback" class="quiz-feedback"></div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════ -->
+        <!-- SLIDE — DDDM SECTION SUMMARY                        -->
+        <!-- ═══════════════════════════════════════════════════ -->
+        <section class="slide section-break">
+          <div class="slide-top">
+            <div class="meta"><div class="course" style="color:#fff;">DDDM Wrap-Up</div></div>
+            <span class="pill">🎯 Key Takeaways</span>
+          </div>
+          <h2 style="color:#fff;border-bottom-color:var(--gold);margin-bottom:24px;">Data Driven Decision Making — Summary</h2>
+          <div class="grid-2" style="align-items:start;gap:24px;">
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div style="padding:14px 18px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);display:flex;gap:12px;align-items:flex-start;">
+                <span style="font-size:22px;">1️⃣</span>
+                <div><div style="font-weight:800;font-size:17px;color:#fff;">DDDM replaces guesswork with evidence</div><div style="font-size:15px;color:rgba(255,255,255,.6);margin-top:4px;">Every significant business decision benefits from data — even if that means confirming an intuition.</div></div>
+              </div>
+              <div style="padding:14px 18px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);display:flex;gap:12px;align-items:flex-start;">
+                <span style="font-size:22px;">2️⃣</span>
+                <div><div style="font-weight:800;font-size:17px;color:#fff;">The process is a cycle, not a one-off</div><div style="font-size:15px;color:rgba(255,255,255,.6);margin-top:4px;">Define → Collect → Clean → Analyse → Decide → Monitor → Repeat. Each cycle improves the next.</div></div>
+              </div>
+              <div style="padding:14px 18px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);display:flex;gap:12px;align-items:flex-start;">
+                <span style="font-size:22px;">3️⃣</span>
+                <div><div style="font-weight:800;font-size:17px;color:#fff;">Data quality is non-negotiable</div><div style="font-size:15px;color:rgba(255,255,255,.6);margin-top:4px;">"Garbage in, garbage out." Clean, relevant, timely data is the foundation of every reliable decision.</div></div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div style="padding:14px 18px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);display:flex;gap:12px;align-items:flex-start;">
+                <span style="font-size:22px;">4️⃣</span>
+                <div><div style="font-weight:800;font-size:17px;color:#fff;">All 5 analytics types serve DDDM</div><div style="font-size:15px;color:rgba(255,255,255,.6);margin-top:4px;">Descriptive, Diagnostic, Predictive, Prescriptive, and Cognitive analytics each answer a different question in the decision-making chain.</div></div>
+              </div>
+              <div style="padding:14px 18px;border-radius:14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.15);display:flex;gap:12px;align-items:flex-start;">
+                <span style="font-size:22px;">5️⃣</span>
+                <div><div style="font-weight:800;font-size:17px;color:#fff;">Culture eats strategy for breakfast</div><div style="font-size:15px;color:rgba(255,255,255,.6);margin-top:4px;">Technical tools alone won't make an organisation data-driven. Leadership, literacy, and incentives must align.</div></div>
+              </div>
+              <div style="padding:14px 18px;border-radius:14px;background:rgba(244,160,17,.15);border:1px solid rgba(244,160,17,.3);display:flex;gap:12px;align-items:flex-start;">
+                <span style="font-size:22px;">📚</span>
+                <div><div style="font-weight:800;font-size:17px;color:var(--gold);">Next: Lecture 3</div><div style="font-size:15px;color:rgba(255,255,255,.6);margin-top:4px;">Data Sources, Collection Methods &amp; Introduction to Data Ethics.</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="slide-footer"><div>Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+      </div><!-- /deck -->
+    </div><!-- /deck-wrap -->
+  </div><!-- /stage -->
+
+  <!-- CONTROLS -->
+  <div class="controls">
+    <button class="iconbtn" id="prevBtn" disabled onclick="go(-1)" title="Previous (←)">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <button class="iconbtn" onclick="toggleFullScreen()" title="Fullscreen (F)">
+      <svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+    </button>
+    <button class="iconbtn" id="nextBtn" onclick="go(1)" title="Next (→)">
+      <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>
+
+  <script>
+    const slides = [...document.querySelectorAll('.slide')];
+    const progressBar = document.getElementById('progress-bar');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    let current = 0;
+
+    // ── SCALING ──
+    function applyScale() {
+      const pad = 24;
+      const w = window.innerWidth - pad * 2;
+      const h = window.innerHeight - pad * 2;
+      const s = Math.min(w / 1600, h / 900);
+      document.documentElement.style.setProperty('--scale', String(Math.max(0.25, Math.min(s, 1.5))));
+    }
+    window.addEventListener('resize', applyScale);
+    applyScale();
+
+    // ── SLIDE NUMBERS ──
+    slides.forEach((s, i) => {
+      const el = s.querySelector('[data-slide-no]');
+      if (el) el.textContent = `${i + 1} / ${slides.length}`;
+    });
+
+    // ── UPDATE UI ──
+    function updateUI() {
+      slides.forEach(s => s.classList.remove('active'));
+      slides[current].classList.add('active');
+      progressBar.style.width = ((current + 1) / slides.length) * 100 + '%';
+      prevBtn.disabled = current === 0;
+      nextBtn.disabled = current === slides.length - 1;
+      stopConfetti();
+    }
+
+    // ── NAVIGATION ──
+    function go(dir) {
+      const cs = slides[current];
+      if (dir === 1) {
+        const unrevealed = cs.querySelectorAll('.fragment:not(.visible)');
+        if (unrevealed.length > 0) { unrevealed[0].classList.add('visible'); return; }
+      }
+      if (dir === -1) {
+        const revealed = cs.querySelectorAll('.fragment.visible');
+        if (revealed.length > 0) { revealed[revealed.length - 1].classList.remove('visible'); return; }
+      }
+      const n = current + dir;
+      if (n < 0 || n >= slides.length) return;
+      current = n;
+      updateUI();
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+      else document.exitFullscreen?.();
+    }
+
+    document.addEventListener('keydown', e => {
+      if (['ArrowRight', ' ', 'Enter'].includes(e.key)) { if (e.key === ' ') e.preventDefault(); go(1); }
+      else if (e.key === 'ArrowLeft') go(-1);
+      else if (e.key.toLowerCase() === 'f') toggleFullScreen();
+      else if (e.key.toLowerCase() === 'l') document.body.classList.toggle('laser-on');
+    });
+
+    // ── LASER ──
+    const laser = document.getElementById('laser');
+    document.addEventListener('mousemove', e => {
+      if (document.body.classList.contains('laser-on')) {
+        laser.style.left = e.clientX + 'px';
+        laser.style.top = e.clientY + 'px';
+      }
+    });
+
+    // ── ANALYTICS CARD INTERACTION ──
+    window.selectAnalytics = function(card) {
+      const parent = card.closest('.grid-5');
+      parent.querySelectorAll('.analytics-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      const hint = document.getElementById('analytics-hint');
+      if (hint) hint.style.display = 'none';
+    };
+
+    // ── BENEFIT TABS ──
+    window.showBenefit = function(btn, id) {
+      const slide = btn.closest('.slide');
+      slide.querySelectorAll('.benefit-tab').forEach(b => b.classList.remove('active'));
+      slide.querySelectorAll('.benefit-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById(id).classList.add('active');
+    };
+
+    // ── QUIZ ──
+    window.checkQuiz = function(el, type, qnum) {
+      const container = document.getElementById('quiz' + qnum);
+      if (container.dataset.answered) return;
+      container.dataset.answered = 'true';
+      container.querySelectorAll('.quiz-option').forEach(o => {
+        if (o === el) o.classList.add(type);
+        else o.style.opacity = '.4';
+        o.style.pointerEvents = 'none';
+      });
+      const fb = document.getElementById('quiz' + qnum + '-feedback');
+      fb.classList.add('show', type);
+      if (type === 'correct') {
+        fb.textContent = '✅ Correct! Prescriptive analytics takes predictive insights and recommends specific actions — exactly what the bank needs here.';
+        fireConfetti();
+      } else {
+        fb.textContent = '❌ Not quite. Think about which type actually recommends an action. Hint: it comes after Predictive.';
+      }
+    };
+
+    // ── DDDM QUIZ ──
+    window.checkQuizDDDM = function(el, type, qnum) {
+      const container = document.getElementById('quiz' + qnum);
+      if (container.dataset.answered) return;
+      container.dataset.answered = 'true';
+      container.querySelectorAll('.quiz-option').forEach(o => {
+        if (o === el) o.classList.add(type);
+        else o.style.opacity = '.4';
+        o.style.pointerEvents = 'none';
+      });
+      const fb = document.getElementById('quiz' + qnum + '-feedback');
+      fb.classList.add('show', type);
+      if (type === 'correct') {
+        fb.textContent = '✅ Correct! DDDM always starts by defining the precise question. Acting on a hunch before understanding the problem is the opposite of data-driven thinking.';
+        fireConfetti();
+      } else {
+        fb.textContent = '❌ Not quite. Before taking any action or hiring anyone, the first step is always to define the specific question you need data to answer.';
+      }
+    };
+
+    // ── MATCHING ACTIVITY ──
+    let selectedLeft = null;
+    const correctPairs = { s1: 't3', s2: 't1', s3: 't4', s4: 't2' };
+    let matchScore = 0;
+
+    window.selectLeft = function(el, id) {
+      if (el.classList.contains('matched')) return;
+      document.querySelectorAll('.match-item[id^="s"]').forEach(e => e.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedLeft = id;
+    };
+
+    window.selectRight = function(el, id, correctLeft) {
+      if (el.classList.contains('matched') || !selectedLeft) return;
+      const fb = document.getElementById('match-feedback');
+      if (correctPairs[selectedLeft] === id) {
+        document.getElementById(selectedLeft).classList.remove('selected');
+        document.getElementById(selectedLeft).classList.add('matched');
+        el.classList.add('matched');
+        matchScore++;
+        selectedLeft = null;
+        fb.style.color = '#16a34a';
+        fb.textContent = `✅ Correct! ${matchScore}/4 matched`;
+        if (matchScore === 4) { fb.textContent = '🎉 Perfect score! All 4 matched correctly!'; fireConfetti(); }
+      } else {
+        fb.style.color = 'var(--accent)';
+        fb.textContent = '❌ Not quite — try again!';
+        document.getElementById(selectedLeft).classList.remove('selected');
+        selectedLeft = null;
+        setTimeout(() => { fb.textContent = ''; }, 1800);
+      }
+    };
+
+    // ── CONFETTI ──
+    const canvas = document.getElementById('confetti-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [], confettiAF;
+    function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.addEventListener('resize', resizeCanvas); resizeCanvas();
+
+    window.fireConfetti = function() {
+      particles = [];
+      const colors = ['#c1121f','#e63946','#f4a011','#ffffff','#0096a0','#e0e8f0'];
+      for (let i = 0; i < 160; i++) {
+        particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height - canvas.height,
+          r: Math.random() * 6 + 2, dx: Math.random() * 4 - 2, dy: Math.random() * 5 + 2,
+          color: colors[Math.floor(Math.random() * colors.length)] });
+      }
+      renderConfetti();
+    };
+    function renderConfetti() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fillStyle = p.color; ctx.fill(); p.x += p.dx; p.y += p.dy; if (p.y > canvas.height) p.y = -10; });
+      confettiAF = requestAnimationFrame(renderConfetti);
+    }
+    function stopConfetti() { cancelAnimationFrame(confettiAF); ctx.clearRect(0, 0, canvas.width, canvas.height); particles = []; }
+
+    // ── LIFECYCLE DIAGRAM INTERACTION ──
+    const phaseData = {
+      1: 'lc-p1', 2: 'lc-p2', 3: 'lc-p3',
+      4: 'lc-p4', 5: 'lc-p5', 6: 'lc-p6'
+    };
+    const phaseColors = {
+      1:'#c1121f', 2:'#0096a0', 3:'#7c3aed',
+      4:'#1d4ed8', 5:'#16a34a', 6:'#f4a011'
+    };
+    window.selectPhase = function(n) {
+      // highlight node
+      for (let i = 1; i <= 6; i++) {
+        const node = document.getElementById('lcn' + i);
+        if (node) node.setAttribute('fill', i === n ? phaseColors[i] : '#fff');
+      }
+      // show detail
+      document.getElementById('lc-default').style.display = 'none';
+      document.querySelectorAll('.lc-phase-detail').forEach(el => el.style.display = 'none');
+      const target = document.getElementById('lc-' + phaseData[n]);
+      if (target) target.style.display = 'block';
+    };
+
+    updateUI();
+  </script>
+</body>
+</html>

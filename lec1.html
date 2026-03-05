@@ -1,0 +1,3101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Introduction to Data Science - Metro College of Technology</title>
+
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <style>
+    :root{
+      /* --- METRO COLLEGE DARK BLUE/GREEN THEME --- */
+      --stage-0: #0b1220;      
+      --stage-1: #0f1a2e;      
+
+      --slide-bg: #ffffff;     
+      --ink: #0f172a;          
+      --muted: #475569;        
+
+      --soft: #e2e8f0;         
+      --soft2: #f1f5f9;        
+
+      --accent: #16a34a;       
+      --accent-2: #22c55e;     
+      
+      --radius: 20px;
+      --shadow: 0 25px 60px rgba(0,0,0,.45);
+
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --sans: "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
+
+      --baseW: 1600;
+      --baseH: 900;
+      --scale: 1;
+    }
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+
+    body{
+      margin:0;
+      font-family: var(--sans);
+      background:
+        radial-gradient(1400px 800px at 20% 10%, rgba(34,197,94,.15), transparent 60%),
+        radial-gradient(1200px 800px at 85% 20%, rgba(22,163,74,.10), transparent 55%),
+        linear-gradient(180deg, var(--stage-0), var(--stage-1));
+      color:#e5e7eb;
+      overflow:hidden;
+    }
+
+    /* Progress Bar */
+    #progress-container{
+      position:fixed; top:0; left:0; width:100%; height:8px;
+      background: rgba(255,255,255,.10); z-index:9999; backdrop-filter: blur(6px);
+    }
+    #progress-bar{
+      height:100%; width:0%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-2));
+      transition: width .25s ease;
+    }
+
+    /* Stage & Deck */
+    .stage{
+      position:fixed; inset:0; display:flex; align-items:center; justify-content:center; padding: 18px;
+    }
+    .deck-wrap{
+      width: calc(var(--baseW) * 1px);
+      height: calc(var(--baseH) * 1px);
+      transform: scale(var(--scale));
+      transform-origin:center center;
+      position:relative;
+    }
+    .deck{ width:100%; height:100%; position:relative; }
+
+    /* Slide Logic */
+    .slide{
+      width:100%; height:100%;
+      background: var(--slide-bg);
+      color: var(--ink);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      position:absolute; inset:0;
+      display:none;
+      overflow:hidden;
+      padding: 50px 60px;
+      animation: slideIn .28s ease;
+    }
+    .slide.active{ display:block; }
+    
+    @keyframes slideIn{
+      from{ opacity:0; transform: translateY(14px) scale(.99); }
+      to{ opacity:1; transform: translateY(0) scale(1); }
+    }
+
+    /* Decorative Triangles */
+    .slide::before, .slide::after{
+      content:""; position:absolute; width: 240px; height: 240px; pointer-events:none; opacity:.95; z-index: 0;
+    }
+    .slide::before{
+      top:-1px; left:-1px;
+      background: radial-gradient(circle at 0% 0%, rgba(34,197,94,.22), transparent 55%),
+                  linear-gradient(135deg, rgba(22,163,74,.95), rgba(34,197,94,.55));
+      clip-path: polygon(0 0, 100% 0, 0 100%);
+    }
+    .slide::after{
+      bottom:-1px; right:-1px;
+      background: radial-gradient(circle at 100% 100%, rgba(34,197,94,.22), transparent 55%),
+                  linear-gradient(315deg, rgba(22,163,74,.95), rgba(34,197,94,.55));
+      clip-path: polygon(100% 100%, 100% 0, 0 100%);
+    }
+
+    /* Typography & Header */
+    .slide-top{
+      position:relative; z-index:2; display:flex; align-items:center; justify-content:space-between; gap:20px; margin-bottom: 22px;
+    }
+    .meta{ display:flex; flex-direction:column; gap:4px; line-height:1.15; }
+    .meta .course{ font-weight:800; letter-spacing:.06em; text-transform:uppercase; color: var(--ink); font-size: 16px; }
+    .meta .sub{ font-size: 15px; color: var(--muted); }
+    
+    h1{ font-size: 56px; margin: 8px 0 10px; letter-spacing:-1.1px; line-height:1.06; position:relative; z-index:2; }
+    h2{ font-size: 40px; margin: 6px 0 18px; letter-spacing:-0.8px; position:relative; z-index:2; border-bottom: 3px solid var(--accent); padding-bottom:10px; display:inline-block; }
+    h3{ font-size: 26px; margin: 14px 0 10px; color: #0b2a14; position:relative; z-index:2; }
+    p, li{ font-size: 20px; line-height:1.6; color: var(--ink); position:relative; z-index:2; margin-bottom: 10px; }
+    
+    .muted{ color: var(--muted); }
+    code{ font-family: var(--mono); font-size: .92em; background: #f3f4f6; padding: 2px 6px; border-radius: 8px; border: 1px solid #e5e7eb; }
+
+    /* Layout Utilities */
+    .grid-2{ display:grid; grid-template-columns: 1.25fr 1fr; gap: 26px; align-items:start; position:relative; z-index:2; }
+    .grid-3{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 14px; align-items:start; position:relative; z-index:2; }
+    
+    /* Components */
+    .card{ background: var(--soft2); border: 1px solid var(--soft); border-radius: 18px; padding: 18px; position:relative; z-index:2; }
+    .card-grid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; margin-top: 14px; position:relative; z-index:2; }
+
+    .info-card{ background: #ffffff; border: 1px solid var(--soft); border-left: 6px solid var(--accent); border-radius: 16px; padding: 16px; transition: transform .15s ease, box-shadow .15s ease; cursor: default; height: 100%; display: flex; flex-direction: column; justify-content: center; }
+    .info-card:hover{ transform: translateY(-2px); box-shadow: 0 10px 24px rgba(0,0,0,.10); }
+
+    .pill{ display:inline-block; border:1px solid var(--soft); background: var(--soft2); border-radius: 999px; padding: 6px 14px; font-size: 14px; color: var(--muted); font-family: var(--mono); white-space:nowrap; }
+    .callout{ border-left: 6px solid var(--accent); padding: 18px 22px; background: #f6fffa; border-radius: 16px; margin-top: 14px; position:relative; z-index:2; }
+    
+    /* Tables */
+    table{ width:100%; border-collapse:separate; border-spacing:0; overflow:hidden; border-radius: 18px; border: 1px solid var(--soft); margin-top: 14px; position:relative; z-index:2; background:#fff; }
+    th, td{ padding: 14px 18px; text-align:left; border-bottom: 1px solid var(--soft); font-size: 18px; vertical-align:top; }
+    th{ background:#0b2a14; color:#fff; font-weight:800; letter-spacing:.2px; }
+    tr:last-child td{ border-bottom:none; }
+    tr:nth-child(even) td{ background:#fbfdff; }
+
+    /* Footer */
+    .slide-footer{ position:absolute; left: 60px; right: 60px; bottom: 26px; display:flex; align-items:center; justify-content:space-between; color: var(--muted); font-size: 14px; z-index:2; }
+    .slide-no{ font-family: var(--mono); background: var(--soft2); border: 1px solid var(--soft); padding: 6px 12px; border-radius: 999px; color: var(--muted); }
+
+    /* Controls */
+    .controls{ position:fixed; right: 18px; bottom: 18px; z-index:10000; display:flex; gap: 10px; align-items:center; }
+    .iconbtn{ width: 44px; height: 44px; border-radius: 999px; border: 1px solid rgba(255,255,255,.22); background: rgba(15,23,42,.45); color:#e5e7eb; display:grid; place-items:center; cursor:pointer; backdrop-filter: blur(10px); transition: transform .12s ease, background .12s ease; user-select:none; }
+    .iconbtn:hover{ transform: translateY(-2px); background: rgba(15,23,42,.65); }
+    .iconbtn:disabled{ opacity:.45; cursor:not-allowed; transform:none; }
+    .iconbtn svg{ width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+    
+    img { max-width: 100%; height: auto; border-radius: 12px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+
+    /* --- CREATIVE INTERACTIVE FEATURES --- */
+    
+    /* 1. Laser Pointer */
+    #laser { position: fixed; top: 0; left: 0; width: 14px; height: 14px; background: #ef4444; border-radius: 50%; pointer-events: none; z-index: 99999; display: none; transform: translate(-50%, -50%); box-shadow: 0 0 10px 3px #ef4444, 0 0 20px 8px rgba(239,68,68,0.4); }
+    body.laser-on { cursor: none; }
+    body.laser-on #laser { display: block; }
+    
+    /* 2. Step-by-step Reveal (Fragments) */
+    .fragment { opacity: 0; transform: translateY(15px); transition: all 0.4s ease; will-change: opacity, transform; }
+    .fragment.visible { opacity: 1; transform: translateY(0); }
+    
+    /* 3. Concept Nodes */
+    .node-grid { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+    .node-btn { background: #ffffff; border: 2px solid var(--soft); padding: 12px 24px; border-radius: 999px; font-size: 18px; font-weight: 700; color: var(--ink); cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    .node-btn:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .node-btn.active { background: var(--accent); color: white; border-color: var(--accent); box-shadow: 0 8px 15px rgba(22,163,74,0.3); transform: scale(1.05); }
+    
+    /* 4. Interactive Flip Cards */
+    .flip-card { perspective: 1000px; cursor: pointer; height: 80px; width: 100%; }
+    .flip-card-inner { position: relative; width: 100%; height: 100%; text-align: center; transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); transform-style: preserve-3d; }
+    .flip-card.flipped .flip-card-inner { transform: rotateY(180deg); }
+    .flip-card-front, .flip-card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; border-radius: 16px; border: 1px solid var(--soft); padding: 10px; }
+    .flip-card-front { background: #ffffff; border-left: 6px solid var(--accent); transition: box-shadow 0.2s; }
+    .flip-card-front:hover { box-shadow: 0 8px 20px rgba(0,0,0,.08); }
+    .flip-card-back { background: var(--accent); color: white; transform: rotateY(180deg); font-weight: 800; font-size: 16px; padding: 10px; }
+
+    /* 5. Terminal Code Block */
+    .terminal-window { background: #1e293b; color: #e2e8f0; font-family: var(--mono); padding: 25px; border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.25); border: 1px solid #334155; position: relative; overflow: hidden; height: 100%; }
+    .terminal-header { background: #0f172a; margin: -25px -25px 20px -25px; padding: 10px 15px; display: flex; gap: 8px; align-items: center; border-bottom: 1px solid #334155; }
+    .term-btn { width: 12px; height: 12px; border-radius: 50%; }
+    .term-red { background: #ef4444; } .term-yellow { background: #f59e0b; } .term-green { background: #10b981; }
+    .code-comment { color: #64748b; font-style: italic; }
+    .code-keyword { color: #c084fc; font-weight: bold; }
+    .code-string { color: #fcd34d; }
+    .code-func { color: #38bdf8; }
+    .code-db { color: #f87171; font-weight: bold;}
+
+    /* 6. Timeline styling */
+    .timeline { border-left: 4px solid var(--soft); padding-left: 30px; margin-left: 15px; margin-top: 20px; position: relative; z-index: 2;}
+    .timeline-item { position: relative; margin-bottom: 30px; }
+    .timeline-item::before { content: ''; position: absolute; left: -41px; top: 0; width: 18px; height: 18px; border-radius: 50%; background: var(--slide-bg); border: 4px solid var(--accent); box-shadow: 0 0 0 4px var(--slide-bg); transition: background 0.3s; }
+    .timeline-item:hover::before { background: var(--accent); }
+    .timeline-date { display: inline-block; font-weight: 800; color: #ffffff; background: var(--accent); padding: 4px 12px; border-radius: 999px; font-size: 16px; margin-bottom: 8px; }
+    .timeline-content { background: var(--soft2); padding: 15px 20px; border-radius: 12px; border: 1px solid var(--soft); }
+
+    /* 7. Confetti Canvas */
+    #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 99998; }
+
+    /* === NEW INTERACTIVE FEATURES === */
+
+    /* Score Tracker Badge */
+    #score-badge {
+      position: fixed; top: 16px; right: 18px; z-index: 9999;
+      background: rgba(15,23,42,.75); color: #e5e7eb;
+      border: 1px solid rgba(255,255,255,.18); backdrop-filter: blur(10px);
+      border-radius: 999px; padding: 6px 16px;
+      font-family: var(--mono); font-size: 14px; font-weight: 700;
+      display: flex; align-items: center; gap: 8px;
+      transition: transform .2s, background .2s;
+    }
+    #score-badge .score-icon { font-size: 16px; }
+    #score-badge.pop { background: rgba(22,163,74,.85); transform: scale(1.1); }
+
+    /* Study Timer */
+    #timer-widget {
+      position: fixed; left: 18px; bottom: 18px; z-index: 10000;
+      background: rgba(15,23,42,.75); color: #e5e7eb;
+      border: 1px solid rgba(255,255,255,.18); backdrop-filter: blur(10px);
+      border-radius: 16px; padding: 10px 16px;
+      font-family: var(--mono); font-size: 22px; font-weight: 800;
+      display: none; align-items: center; gap: 10px;
+      cursor: pointer; user-select: none;
+    }
+    #timer-widget.running { border-color: var(--accent); color: var(--accent-2); }
+    #timer-widget.warn { border-color: #f59e0b; color: #f59e0b; animation: timerPulse .8s infinite; }
+    @keyframes timerPulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+    #timer-widget button { background: none; border: none; color: inherit; cursor: pointer; font-size: 16px; padding: 2px 6px; border-radius: 8px; transition: background .15s; }
+    #timer-widget button:hover { background: rgba(255,255,255,.12); }
+
+    /* Overview Panel */
+    #overview-panel {
+      position: fixed; inset: 0; z-index: 99990;
+      background: rgba(11,18,32,.95); backdrop-filter: blur(16px);
+      display: none; flex-direction: column; align-items: center; padding: 30px 24px;
+      overflow-y: auto;
+    }
+    #overview-panel.open { display: flex; }
+    #overview-panel h2 { color: #e5e7eb; font-size: 22px; margin: 0 0 20px; letter-spacing: .05em; text-transform: uppercase; }
+    .overview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; width: 100%; max-width: 1400px; }
+    .overview-thumb {
+      background: #ffffff; border-radius: 12px; cursor: pointer;
+      border: 3px solid transparent; overflow: hidden;
+      transition: transform .18s, border-color .18s, box-shadow .18s;
+      position: relative; aspect-ratio: 16/9;
+      display: flex; flex-direction: column;
+    }
+    .overview-thumb:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,.4); }
+    .overview-thumb.current { border-color: var(--accent); }
+    .overview-thumb-header { background: #0b2a14; padding: 8px 10px; font-size: 10px; color: #bbf7d0; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .overview-thumb-body { padding: 8px 10px; flex: 1; }
+    .overview-thumb-title { font-size: 11px; font-weight: 800; color: #0f172a; line-height: 1.3; }
+    .overview-thumb-sub { font-size: 9px; color: #64748b; margin-top: 2px; }
+    .overview-thumb-num { position: absolute; bottom: 6px; right: 8px; font-size: 9px; font-family: var(--mono); color: #94a3b8; }
+    .overview-close { position: fixed; top: 16px; right: 18px; z-index: 99991; color: #e5e7eb; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2); border-radius: 999px; padding: 6px 16px; cursor: pointer; font-size: 14px; transition: background .15s; }
+    .overview-close:hover { background: rgba(255,255,255,.2); }
+
+    /* Keyboard Shortcut Modal */
+    #shortcuts-modal {
+      position: fixed; inset: 0; z-index: 99992;
+      background: rgba(11,18,32,.88); backdrop-filter: blur(12px);
+      display: none; align-items: center; justify-content: center;
+    }
+    #shortcuts-modal.open { display: flex; }
+    .shortcuts-box {
+      background: #0f1a2e; border: 1px solid rgba(255,255,255,.18);
+      border-radius: 20px; padding: 36px 40px; max-width: 480px; width: 90%;
+      color: #e5e7eb;
+    }
+    .shortcuts-box h3 { margin: 0 0 20px; font-size: 20px; color: #e5e7eb; text-align: center; }
+    .shortcut-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-size: 15px; }
+    .shortcut-row span { color: #94a3b8; }
+    kbd { background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22); border-radius: 6px; padding: 3px 10px; font-family: var(--mono); font-size: 13px; color: #e5e7eb; font-weight: 700; }
+    .shortcuts-close-btn { display: block; width: 100%; margin-top: 24px; background: var(--accent); color: white; border: none; border-radius: 12px; padding: 12px; font-size: 16px; font-weight: 700; cursor: pointer; transition: background .15s; }
+    .shortcuts-close-btn:hover { background: var(--accent-2); }
+
+    /* Section Breadcrumb in progress bar */
+    #section-label {
+      position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
+      z-index: 9999; font-size: 12px; color: rgba(255,255,255,.6);
+      font-family: var(--mono); pointer-events: none; white-space: nowrap;
+      text-shadow: 0 1px 4px rgba(0,0,0,.5);
+    }
+
+    /* Help button */
+    .iconbtn.help-btn { font-size: 18px; font-weight: 800; font-family: var(--mono); }
+
+    /* Quiz reset button */
+    .quiz-reset-btn {
+      display: inline-block; margin-top: 14px;
+      background: none; border: 1px solid var(--soft);
+      border-radius: 999px; padding: 6px 18px;
+      font-size: 14px; color: var(--muted); cursor: pointer;
+      transition: all .15s; font-family: var(--sans);
+    }
+    .quiz-reset-btn:hover { background: var(--soft2); color: var(--ink); border-color: var(--accent); }
+
+    /* Animated entrance for section header slides */
+    .section-hero-title {
+      animation: heroIn .6s cubic-bezier(0.22, 1, 0.36, 1) both;
+    }
+    @keyframes heroIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="laser"></div>
+  <canvas id="confetti-canvas"></canvas>
+  <div id="progress-container"><div id="progress-bar"></div></div>
+  <div id="section-label"></div>
+
+  <!-- Score Badge -->
+  <div id="score-badge"><span class="score-icon">🎯</span><span id="score-text">Score: 0/0</span></div>
+
+  <!-- Study Timer -->
+  <div id="timer-widget" title="Click to start/pause · Right-click to reset">
+    <span id="timer-display">5:00</span>
+    <button onclick="event.stopPropagation(); cycleTimerDuration()" title="Change duration">⏱</button>
+  </div>
+
+  <!-- Overview Panel -->
+  <div id="overview-panel">
+    <button class="overview-close" onclick="closeOverview()">✕ Close</button>
+    <h2>📋 Slide Overview</h2>
+    <div class="overview-grid" id="overview-grid"></div>
+  </div>
+
+  <!-- Keyboard Shortcuts Modal -->
+  <div id="shortcuts-modal" onclick="if(event.target===this)closeShortcuts()">
+    <div class="shortcuts-box">
+      <h3>⌨️ Keyboard Shortcuts</h3>
+      <div class="shortcut-row"><span>Next slide / Reveal</span><div><kbd>→</kbd> <kbd>Space</kbd> <kbd>Enter</kbd></div></div>
+      <div class="shortcut-row"><span>Previous slide</span><kbd>←</kbd></div>
+      <div class="shortcut-row"><span>Slide Overview</span><kbd>O</kbd></div>
+      <div class="shortcut-row"><span>Toggle Laser Pointer</span><kbd>L</kbd></div>
+      <div class="shortcut-row"><span>Toggle Fullscreen</span><kbd>F</kbd></div>
+      <div class="shortcut-row"><span>Study Timer</span><kbd>T</kbd></div>
+      <div class="shortcut-row"><span>This Help Panel</span><kbd>?</kbd></div>
+      <button class="shortcuts-close-btn" onclick="closeShortcuts()">Got it!</button>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="deck-wrap" id="deckWrap">
+      <div class="deck" id="deck">
+
+        <section class="slide active">
+          <div class="slide-top">
+            <div class="meta">
+              <div class="course">Metro College of Technology</div>
+              <div class="sub">Lecture 1</div>
+            </div>
+            <span class="pill" title="Press 'L' for Laser Pointer" style="cursor:help;">💡 Press 'L' for Laser Mode</span>
+          </div>
+          
+          <h1 style="margin-top: 15%;">Introduction to Data Science</h1>
+          <h2 style="margin-top:0; border:none; color:var(--muted);">Course Overview and Fundamentals</h2>
+          
+          <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+          <div class="slide-top">
+            <div class="meta"><div class="course">Metro College of Technology</div><div class="sub">Course Structure</div></div>
+            <span class="pill">Logistics</span>
+          </div>
+          
+          <h2>Method of Evaluation</h2>
+          
+          <div class="grid-2">
+            <div>
+              <h3>Grading Breakdown</h3>
+              <p>Assessments include graded homework, quizzes, projects, and a final examination.</p>
+              <table class="fragment">
+                <tr>
+                  <th style="width:50%;">Type</th>
+                  <th style="width:25%;">Number</th>
+                  <th>% Value</th>
+                </tr>
+                <tr>
+                  <td>Exam</td>
+                  <td>1</td>
+                  <td>100</td>
+                </tr>
+              </table>
+            </div>
+            
+            <div>
+              <h3>Teaching Methods</h3>
+              <ul>
+                <li class="fragment">Lecture: 20 hours</li>
+                <li class="fragment">Classroom/Lab (College)</li>
+                <li class="fragment">Supervised Lab (e.g., computers)</li>
+              </ul>
+            </div>
+          </div>
+          
+          <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Metro College of Technology</div><div class="sub">Resources</div></div>
+              <span class="pill">Literature</span>
+            </div>
+            
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:80%; text-align:center;">
+                <h1 style="font-size: 60px; line-height: 1.2;">Best Textbooks for Understanding<br>Data Science</h1>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Metro College of Technology</div><div class="sub">Required Reading</div></div>
+              <span class="pill">Textbook 1</span>
+            </div>
+            
+            <h2>Core Textbook</h2>
+            
+            <div class="grid-2" style="align-items: center; margin-top: 40px;">
+                <div class="callout fragment" style="padding: 40px;">
+                  <h3>Data Science</h3>
+                  <ul style="list-style-type: none; padding: 0;">
+                    <li style="margin-bottom: 10px;"><strong>Authors:</strong> John D. Kelleher and Brendan Tierney</li>
+                    <li style="margin-bottom: 10px;"><strong>Publisher:</strong> The MIT Press</li>
+                    <li style="margin-bottom: 10px;"><strong>Series:</strong> The MIT Press Essential Knowledge Series</li>
+                  </ul>
+                </div>
+                
+                <div class="card fragment" style="display:flex; align-items:center; justify-content:center; text-align:center; min-height:350px;">
+                    <img src="images/book1.jpg" alt="Data Science Textbook Cover" />
+                </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Metro College of Technology</div><div class="sub">Required Reading</div></div>
+              <span class="pill">Textbook 2</span>
+            </div>
+            
+            <h2>Supplementary Textbook</h2>
+            
+            <div class="grid-2" style="align-items: center; margin-top: 40px;">
+                <div class="callout fragment" style="padding: 40px;">
+                  <h3>Data Science and Big Data Analytics</h3>
+                  <ul style="list-style-type: none; padding: 0;">
+                    <li style="margin-bottom: 10px;"><strong>Subtitle:</strong> Discovering, Analyzing, Visualizing and Presenting Data</li>
+                    <li style="margin-bottom: 10px;"><strong>Publisher:</strong> EMC Education Services</li>
+                  </ul>
+                </div>
+                
+                <div class="card fragment" style="display:flex; align-items:center; justify-content:center; text-align:center; min-height:350px;">
+                    <img src="images/book2.jpg" alt="Data Science and Big Data Analytics Textbook Cover" onerror="this.src='images/book1.jpg';" />
+                </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Metro College of Technology</div><div class="sub">Section 2</div></div>
+            </div>
+            
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:80%; text-align:center;">
+                <h1 style="font-size: 65px; margin-bottom: 20px; color: var(--accent);">Core Concepts &<br>Technology Stack</h1>
+                <p style="font-size: 24px; color: var(--muted); max-width: 800px;">Understanding the definition of data science and exploring the rich ecosystem of tools that drive modern analytics.</p>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Core Concepts</div><div class="sub">Definition</div></div>
+              <span class="pill">Theory</span>
+            </div>
+            
+            <h2>What is Data Science?</h2>
+            
+            <div class="grid-2">
+              <div>
+                <p class="fragment">An interdisciplinary field that uses <strong>algorithms, procedures, and processes</strong> to examine large amounts of data to uncover hidden patterns and generate insights.</p>
+                <p class="fragment">To create prediction models, data scientists use advanced machine learning algorithms to sort through, organize and learn from <strong>structured and unstructured data</strong>.</p>
+                <div class="callout fragment" style="background: rgba(22,163,74,0.1); border-left-color: var(--accent-2);">
+                  <h3 style="margin-top:0; color: var(--accent);">Objective</h3>
+                  <p style="margin:0; font-size:18px;">To guide decision making and strategic planning through the analysis of large data sets.</p>
+                </div>
+              </div>
+              
+              <div>
+                <h3 class="fragment" style="margin-top:0;">Data Science Combines:</h3>
+                <div class="card-grid" style="grid-template-columns: 1fr; gap: 12px; margin-top: 10px;">
+                  <div class="info-card fragment" style="padding:14px; flex-direction: row; justify-content:flex-start; gap: 10px;">➕ Math & Statistics</div>
+                  <div class="info-card fragment" style="padding:14px; flex-direction: row; justify-content:flex-start; gap: 10px;">💻 Specialized Programming</div>
+                  <div class="info-card fragment" style="padding:14px; flex-direction: row; justify-content:flex-start; gap: 10px;">🧠 Advanced Analytics & AI / ML</div>
+                  <div class="info-card fragment" style="padding:14px; flex-direction: row; justify-content:flex-start; gap: 10px;">🏢 Specific Subject Matter Expertise</div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Core Concepts</div><div class="sub">Expanded Definition</div></div>
+              <span class="pill">Big Data</span>
+            </div>
+            
+            <h2>What is Data Science? (Continued)</h2>
+            
+            <div class="grid-2">
+                <div>
+                    <p>As a field of activity, data science includes a set of principles, algorithms, and processes for extracting hidden and useful patterns from big data sets.</p>
+                    <p class="fragment">It is closely related to the fields of <strong>data mining</strong> and <strong>machine learning</strong>.</p>
+                </div>
+                
+                <div>
+                    <div class="card fragment" style="border-top: 6px solid var(--accent);">
+                        <h3 style="margin-top:0;">What is Big Data?</h3>
+                        <p style="margin-bottom: 15px;">Characterized by the <strong>3Vs</strong>:</p>
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            <div class="info-card" style="padding: 10px 15px; flex-direction: row; justify-content: flex-start;"><strong>Volume:</strong> Extreme volume of data</div>
+                            <div class="info-card" style="padding: 10px 15px; flex-direction: row; justify-content: flex-start;"><strong>Variety:</strong> Variety of data types (structured/unstructured)</div>
+                            <div class="info-card" style="padding: 10px 15px; flex-direction: row; justify-content: flex-start;"><strong>Velocity:</strong> High speed of data processing</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="fragment" style="text-align: center; margin-top: 15px;">
+                
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Core Concepts</div><div class="sub">Summary</div></div>
+            </div>
+            
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:85%; text-align:center;">
+                <h3 style="color: var(--muted); margin-bottom: 30px; letter-spacing: 2px; text-transform: uppercase;">In Simple Words...</h3>
+                
+                <div class="card" style="background: var(--accent); color: white; padding: 50px; border-radius: 24px; max-width: 1100px; box-shadow: 0 20px 40px rgba(22,163,74,0.3); border: none;">
+                    <h1 style="font-size: 48px; line-height: 1.3; margin: 0; color: white;">
+                        "Data Science is a blend of various tools, algorithms, and machine learning principles with the goal to <span style="color: #fcd34d;">discover hidden patterns</span> from raw data to <span style="color: #fcd34d;">improve decision making</span>."
+                    </h1>
+                </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Technology Stack</div><div class="sub">Programming Languages</div></div>
+              <span class="pill">Python</span>
+            </div>
+            
+            <h2>Python in Data Science</h2>
+            
+            <p>In recent times, <strong>Python</strong> has become the most popular programming language in the industry. It is essential for roles like Data Analyst, Data Scientist, and ML Engineer.</p>
+            
+            <div class="grid-2" style="margin-top: 30px; align-items: start;">
+              <div class="terminal-window fragment">
+                <div class="terminal-header">
+                  <div class="term-btn term-red"></div>
+                  <div class="term-btn term-yellow"></div>
+                  <div class="term-btn term-green"></div>
+                  <span style="margin-left:10px; font-size:12px; color:#94a3b8;">python_tools.py</span>
+                </div>
+                <div class="code-comment"># Essential tools for modern data roles</div>
+                <div><span class="code-keyword">import</span> pandas <span class="code-keyword">as</span> pd</div>
+                <div><span class="code-keyword">import</span> numpy <span class="code-keyword">as</span> np</div>
+                <div><span class="code-keyword">from</span> sklearn <span class="code-keyword">import</span> machine_learning</div>
+                <br>
+                <div><span class="code-func">print</span>(<span class="code-string">"Hands-on Python skills are essential!"</span>)</div>
+                <br>
+                <div style="color:#10b981;">> Hands-on Python skills are essential!</div>
+                <div class="cursor" style="display:inline-block; width:8px; height:15px; background:#e2e8f0; animation: blink 1s step-end infinite;"></div>
+              </div>
+              
+              <div>
+                <h3 class="fragment" style="margin-top:0;">Crucial Python Roles:</h3>
+                <div class="card-grid" style="grid-template-columns: 1fr; gap: 15px; margin-top: 15px;">
+                  <div class="flip-card fragment" onclick="this.classList.toggle('flipped')" style="height: 65px;">
+                      <div class="flip-card-inner">
+                        <div class="flip-card-front"><h3 style="margin:0; font-size:20px;">Data Analyst</h3></div>
+                        <div class="flip-card-back" style="font-size:16px;">Analyzing Data & Visualization</div>
+                      </div>
+                  </div>
+                  <div class="flip-card fragment" onclick="this.classList.toggle('flipped')" style="height: 65px;">
+                      <div class="flip-card-inner">
+                        <div class="flip-card-front"><h3 style="margin:0; font-size:20px;">Data Scientist</h3></div>
+                        <div class="flip-card-back" style="font-size:16px;">Predictive Modeling & Insights</div>
+                      </div>
+                  </div>
+                  <div class="flip-card fragment" onclick="this.classList.toggle('flipped')" style="height: 65px;">
+                      <div class="flip-card-inner">
+                        <div class="flip-card-front"><h3 style="margin:0; font-size:20px;">ML Engineer</h3></div>
+                        <div class="flip-card-back" style="font-size:16px;">Algorithm Deployment & MLOps</div>
+                      </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Technology Stack</div><div class="sub">Enterprise Architecture</div></div>
+              <span class="pill">Java</span>
+            </div>
+            
+            <h2>Java in Data Science</h2>
+            
+            <p>Java is a strongly-typed, object-oriented language that remains a cornerstone for enterprise-level data architecture and data engineering.</p>
+            
+            <div class="grid-2" style="margin-top: 20px;">
+                <div class="card fragment" style="padding: 25px;">
+                    <h3 style="margin-top:0; color:var(--accent);">Why Java?</h3>
+                    <ul style="margin-bottom:0;">
+                        <li style="margin-bottom: 12px;"><strong>Performance:</strong> Offers excellent execution speed and scalability for complex tasks.</li>
+                        <li style="margin-bottom: 12px;"><strong>Big Data Native:</strong> Major frameworks like Hadoop and Kafka are written natively in Java/Scala.</li>
+                        <li style="margin-bottom: 12px;"><strong>Libraries:</strong> Tools like Weka, Deeplearning4j, and MOA provide strong machine learning capabilities.</li>
+                    </ul>
+                </div>
+                
+                <div class="fragment" style="display:flex; flex-direction:column; justify-content:center;">
+                    <div class="callout" style="background:#f0f9ff; border-left-color:#0284c7; padding: 30px;">
+                        <h3 style="margin-top:0; color:#0369a1;">Primary Use Case</h3>
+                        <p style="margin:0;">Building robust, large-scale <strong>ETL (Extract, Transform, Load) pipelines</strong> and integrating machine learning models into massive, pre-existing corporate software systems.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Technology Stack</div><div class="sub">Database Management</div></div>
+              <span class="pill">SQL</span>
+            </div>
+            
+            <h2>SQL (Structured Query Language)</h2>
+            
+            <p>SQL is the absolute bedrock of data retrieval. Before you can analyze data with Python or build models with Java, you must extract it from relational databases.</p>
+            
+            <div class="grid-2" style="margin-top: 20px; align-items: stretch;">
+                <div class="terminal-window fragment" style="height: auto;">
+                    <div class="terminal-header">
+                      <div class="term-btn term-red"></div>
+                      <div class="term-btn term-yellow"></div>
+                      <div class="term-btn term-green"></div>
+                      <span style="margin-left:10px; font-size:12px; color:#94a3b8;">query.sql</span>
+                    </div>
+                    <div class="code-comment">-- Retrieving user purchasing behavior</div>
+                    <div><span class="code-keyword">SELECT</span> customer_id, <span class="code-func">COUNT</span>(order_id) <span class="code-keyword">AS</span> total_orders</div>
+                    <div><span class="code-keyword">FROM</span> <span class="code-db">sales_data</span></div>
+                    <div><span class="code-keyword">WHERE</span> purchase_date >= <span class="code-string">'2023-01-01'</span></div>
+                    <div><span class="code-keyword">GROUP BY</span> customer_id</div>
+                    <div><span class="code-keyword">ORDER BY</span> total_orders <span class="code-keyword">DESC</span>;</div>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div class="info-card fragment"><strong>Data Extraction:</strong> Pulling specific datasets from massive relational architectures (MySQL, PostgreSQL, Oracle).</div>
+                    <div class="info-card fragment"><strong>Data Transformation:</strong> Cleaning, joining, and aggregating tables before exporting to tools like Pandas.</div>
+                    
+                </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Technology Stack</div><div class="sub">Advanced Analytics</div></div>
+              <span class="pill">SAS</span>
+            </div>
+            
+            <h2>SAS (Statistical Analysis System)</h2>
+            
+            <p>SAS is a specialized, proprietary software suite developed for advanced analytics, multivariate analysis, business intelligence, and predictive modeling.</p>
+            
+            <div class="card fragment" style="margin-top: 30px; padding: 30px;">
+                <div class="grid-3">
+                    <div>
+                        <h3 style="color: var(--accent); margin-top:0;">Industry Standard</h3>
+                        <p style="font-size: 18px;">Heavily relied upon in highly regulated industries like <strong>Healthcare, Clinical Trials, and Finance</strong>.</p>
+                    </div>
+                    <div>
+                        <h3 style="color: var(--accent); margin-top:0;">Strict Compliance</h3>
+                        <p style="font-size: 18px;">Offers unparalleled data governance, security, and regulatory compliance reporting right out of the box.</p>
+                    </div>
+                    <div>
+                        <h3 style="color: var(--accent); margin-top:0;">Dual Interface</h3>
+                        <p style="font-size: 18px;">Provides both a robust, click-and-drag GUI for analysts and a specialized programming language for complex manipulation.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Technology Stack</div><div class="sub">Distributed Computing</div></div>
+              <span class="pill">Big Data</span>
+            </div>
+            
+            <h2>Big Data: Hadoop & Apache Spark</h2>
+            
+            <p>Big Data frameworks are designed to process, store, and analyze massive datasets that traditional databases cannot handle on a single machine.</p>
+            
+            <div class="grid-2" style="margin-top: 30px;">
+                <div class="card fragment" style="border-top: 6px solid #f59e0b;">
+                    <h3 style="margin-top:0;">Apache Hadoop</h3>
+                    <p>The original big data pioneer.</p>
+                    <ul>
+                        <li><strong>HDFS:</strong> Distributed file system that splits massive files across multiple servers.</li>
+                        <li><strong>MapReduce:</strong> Processes data by writing and reading to the disk constantly.</li>
+                        <li><strong>Best for:</strong> Massive, batch-processing jobs where time is less critical than scale.</li>
+                    </ul>
+                </div>
+                
+                <div class="card fragment" style="border-top: 6px solid #e11d48;">
+                    <h3 style="margin-top:0;">Apache Spark</h3>
+                    <p>The modern, lightning-fast standard.</p>
+                    <ul>
+                        <li><strong>In-Memory:</strong> Processes data in RAM, making it up to 100x faster than Hadoop MapReduce.</li>
+                        <li><strong>Streaming:</strong> Excellent for real-time data streaming and instant analytics.</li>
+                        <li><strong>Ecosystem:</strong> Contains built-in libraries for SQL (Spark SQL) and Machine Learning (MLlib).</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="fragment" style="text-align: center; margin-top: 10px;">
+                
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Technology Stack</div><div class="sub">Deep Learning</div></div>
+              <span class="pill">TensorFlow</span>
+            </div>
+            
+            <h2>TensorFlow & Neural Networks</h2>
+            
+            <p>When classical Machine Learning isn't enough, we turn to Deep Learning frameworks to build and train complex Artificial Neural Networks.</p>
+            
+            <div class="grid-2" style="margin-top: 30px;">
+                <div>
+                    <div class="info-card fragment" style="margin-bottom: 15px; flex-direction: column; align-items: flex-start; justify-content: flex-start;">
+                        <h4 style="margin:0 0 5px 0; color:var(--accent);">TensorFlow (Google)</h4>
+                        <p style="margin:0; font-size:16px;">The industry dominant framework for production environments and mobile model deployments (TF Lite).</p>
+                    </div>
+                    <div class="info-card fragment" style="margin-bottom: 15px; flex-direction: column; align-items: flex-start; justify-content: flex-start;">
+                        <h4 style="margin:0 0 5px 0; color:var(--accent);">PyTorch (Meta)</h4>
+                        <p style="margin:0; font-size:16px;">Highly popular in research and academia due to its flexible, dynamic computation graph ("Pythonic" feel).</p>
+                    </div>
+                    <div class="info-card fragment" style="flex-direction: column; align-items: flex-start; justify-content: flex-start;">
+                        <h4 style="margin:0 0 5px 0; color:var(--accent);">Applications</h4>
+                        <p style="margin:0; font-size:16px;">Used to model highly non-linear relationships like Image Recognition, Natural Language Processing, and Generative AI.</p>
+                    </div>
+                </div>
+                
+                <div class="fragment" style="display:flex; align-items:center; justify-content:center; height:100%;">
+                    
+
+[Image of deep neural network layers diagram]
+
+                </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Concepts</div><div class="sub">Importance of Data</div></div>
+            </div>
+            
+            <h2>"Data is the new Oil"</h2>
+            
+            <p style="margin-bottom: 30px;">
+              Controlling data gives one the power to influence decision-making. Actionable insights can be generated using exploratory data analysis and complex algorithms. With an explosion of data availability, we see data being captured in multiple forms from various domains.
+            </p>
+            
+            <h3>Key Data Domains</h3>
+            <div class="card-grid" style="grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 10px;">
+                <div class="info-card fragment" style="flex-direction: row; justify-content: flex-start;"><strong>Telecom:</strong> Call, internet, geospatial data</div>
+                <div class="info-card fragment" style="flex-direction: row; justify-content: flex-start;"><strong>Banking:</strong> Loan, insurance, demographics</div>
+                <div class="info-card fragment" style="flex-direction: row; justify-content: flex-start;"><strong>E-commerce:</strong> User-generated data</div>
+                <div class="info-card fragment" style="flex-direction: row; justify-content: flex-start;"><strong>Healthcare:</strong> Images, prescriptions, vitals</div>
+                <div class="info-card fragment" style="flex-direction: row; justify-content: flex-start;"><strong>Geo locations:</strong> Latitude/longitude</div>
+                <div class="info-card fragment" style="flex-direction: row; justify-content: flex-start;"><strong>Astronomy:</strong> Satellite images, planetary info</div>
+                <div class="info-card fragment" style="grid-column: span 3; justify-content: center; flex-direction: row;"><strong>Agriculture:</strong> Crop yield data, weather forecasting data</div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Ecosystem</div><div class="sub">Associated Fields</div></div>
+              <span class="pill">Interactive: Click Nodes</span>
+            </div>
+            
+            <h2>Associated Fields & Technologies</h2>
+            <p>Today, numerous fields are associated with Machine Learning and Artificial Intelligence:</p>
+            
+            <div class="grid-2">
+              <div class="card" style="padding: 24px;">
+                <p style="margin-top:0; font-size:16px; color:var(--muted);">Click nodes to select topics for discussion:</p>
+                <div class="node-grid">
+                  <button class="node-btn" onclick="this.classList.toggle('active')">Classical ML</button>
+                  <button class="node-btn" onclick="this.classList.toggle('active')">Deep Learning (DL)</button>
+                  <button class="node-btn" onclick="this.classList.toggle('active')">NLP</button>
+                  <button class="node-btn" onclick="this.classList.toggle('active')">Reinforcement Learning</button>
+                  <button class="node-btn" onclick="this.classList.toggle('active')">Neural Networks (NN)</button>
+                  <button class="node-btn" onclick="this.classList.toggle('active')">Computer Vision (CV)</button>
+                </div>
+              </div>
+              
+              <div>
+                <div class="callout fragment" style="margin-top: 0;">
+                  <strong>MLOps:</strong> Operational part of machine learning solutions (deploying to production & monitoring).
+                </div>
+                <div class="callout fragment">
+                  <strong>Big Data & Cloud:</strong> AWS, GCP, Azure are integral to ML/Data Science solutions.
+                </div>
+                <p class="fragment" style="font-size: 16px; margin-top: 20px; color: var(--muted);">
+                  <strong>Note:</strong> Diving deep into these topics requires programming, logic building, and basic statistics.
+                </p>
+              </div>
+            </div>
+
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">FYI (Additional Reading)</div><div class="sub">Origins</div></div>
+              <span class="pill">History Part 1</span>
+            </div>
+            
+            <h2>History of Data Science</h2>
+            <p>The term "data science" (originally used interchangeably with “datalogy") has existed for over thirty years.</p>
+            
+            <div class="timeline">
+                <div class="timeline-item fragment">
+                    <span class="timeline-date">1960</span>
+                    <div class="timeline-content">
+                        <p style="margin: 0;">The term was used initially as a substitute for computer science by <strong>Peter Naur</strong>.</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item fragment">
+                    <span class="timeline-date">1996</span>
+                    <div class="timeline-content">
+                        <p style="margin: 0;">For the first time, the term data science is included in the title of a conference ("Data Science, Classification, and Related methods").</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item fragment">
+                    <span class="timeline-date">1997</span>
+                    <div class="timeline-content">
+                        <p style="margin: 0;"><strong>C.F. Jeff Wu</strong> gave the inaugural lecture entitled <em>"Statistics = Data Science?"</em> for his appointment to the H. C. Carver Professorship at the University of Michigan.</p>
+                        <p style="margin: 10px 0 0 0; font-size: 16px; color: var(--muted);">In his conclusion, he initiated the modern usage of the term and advocated that statistics be renamed data science and statisticians be called data scientists.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">FYI (Additional Reading)</div><div class="sub">Modern Era</div></div>
+              <span class="pill">History Part 2</span>
+            </div>
+            
+            <h2>History of Data Science (Continued)</h2>
+            
+            <div class="timeline">
+                <div class="timeline-item fragment">
+                    <span class="timeline-date">2001</span>
+                    <div class="timeline-content">
+                        <p style="margin: 0;"><strong>William S. Cleveland</strong> introduced data science as an independent discipline.</p>
+                        <p style="margin: 10px 0 0 0; font-size: 16px; color: var(--muted);">He extended the field of statistics to incorporate "advances in computing with data" in his article <em>"Data Science: An Action Plan for Expanding the Technical Areas of the Field of Statistics."</em></p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item fragment">
+                    <span class="timeline-date">2002</span>
+                    <div class="timeline-content">
+                        <p style="margin: 0;">The International Council for Science: Committee on Data for Science and Technology (<strong>CODATA</strong>) started the <em>Data Science Journal</em>.</p>
+                        <p style="margin: 10px 0 0 0; font-size: 16px; color: var(--muted);">It focused on issues such as the description of data systems, their publication on the internet, applications, and legal issues.</p>
+                    </div>
+                </div>
+                
+                <div class="timeline-item fragment">
+                    <span class="timeline-date">2012</span>
+                    <div class="timeline-content">
+                        <p style="margin: 0;">The <strong>Harvard Business Review</strong> published the famous article: <em>"Data Scientist: The Sexiest Job of the 21st Century"</em>.</p>
+                        <p style="margin: 10px 0 0 0; font-size: 16px; color: var(--muted);">It asserted that a data scientist is "a new breed", and that a shortage of data scientists is becoming a serious constraint in some sectors.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Assignment</div><div class="sub">Abbreviations</div></div>
+              <span class="pill">Interactive Homework</span>
+            </div>
+            
+            <h2>Homework: Abbreviations</h2>
+            
+            <p>Click on the cards to reveal the full forms of these data science abbreviations!</p>
+            
+            <div class="card" style="margin-top: 20px; padding: 25px;">
+                <div class="grid-3" style="text-align: center;" id="hw-grid">
+                    <div class="flip-card" onclick="flipCard(this)">
+                      <div class="flip-card-inner"><div class="flip-card-front"><h3 style="margin:0;">DL</h3></div><div class="flip-card-back">Deep Learning</div></div>
+                    </div>
+                    <div class="flip-card" onclick="flipCard(this)">
+                      <div class="flip-card-inner"><div class="flip-card-front"><h3 style="margin:0;">NLP</h3></div><div class="flip-card-back">Natural Language Processing</div></div>
+                    </div>
+                    <div class="flip-card" onclick="flipCard(this)">
+                      <div class="flip-card-inner"><div class="flip-card-front"><h3 style="margin:0;">RL</h3></div><div class="flip-card-back">Reinforcement Learning</div></div>
+                    </div>
+                    <div class="flip-card" onclick="flipCard(this)">
+                      <div class="flip-card-inner"><div class="flip-card-front"><h3 style="margin:0;">CV</h3></div><div class="flip-card-back">Computer Vision</div></div>
+                    </div>
+                    <div class="flip-card" onclick="flipCard(this)">
+                      <div class="flip-card-inner"><div class="flip-card-front"><h3 style="margin:0;">MLOps</h3></div><div class="flip-card-back">Machine Learning Operations</div></div>
+                    </div>
+                    <div class="flip-card" onclick="flipCard(this)">
+                      <div class="flip-card-inner"><div class="flip-card-front"><h3 style="margin:0;">AI</h3></div><div class="flip-card-back">Artificial Intelligence</div></div>
+                    </div>
+                    <div class="flip-card" onclick="flipCard(this)">
+                      <div class="flip-card-inner"><div class="flip-card-front"><h3 style="margin:0;">ML</h3></div><div class="flip-card-back">Machine Learning</div></div>
+                    </div>
+                    <div class="flip-card" onclick="flipCard(this)">
+                      <div class="flip-card-inner"><div class="flip-card-front"><h3 style="margin:0;">NN</h3></div><div class="flip-card-back">Neural Networks</div></div>
+                    </div>
+                    <div class="flip-card" onclick="flipCard(this)">
+                      <div class="flip-card-inner"><div class="flip-card-front"><h3 style="margin:0;">SQL</h3></div><div class="flip-card-back">Structured Query Language</div></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Metro College of Technology</div><div class="sub">Section 3</div></div>
+            </div>
+            
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:80%; text-align:center;">
+                <h1 style="font-size: 65px; margin-bottom: 20px; color: var(--accent);">The Data Scientist Profile</h1>
+                <p style="font-size: 24px; color: var(--muted); max-width: 800px;">Exploring the essential hard and soft skills required to succeed in the modern data science ecosystem.</p>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">The Profile</div><div class="sub">Three Pillars</div></div>
+              <span class="pill">Interactive</span>
+            </div>
+            
+            <h2>The Three Pillars of Data Science</h2>
+            <p>A Data Scientist requires skills basically from three major areas:</p>
+            
+            <div class="grid-3" style="margin-top: 30px;">
+                <div class="card fragment" style="text-align: center; border-top: 6px solid #38bdf8;">
+                    <h3 style="margin-top: 5px;">Mathematics</h3>
+                    <p class="muted" style="font-size: 16px;">Statistical Research</p>
+                </div>
+                <div class="card fragment" style="text-align: center; border-top: 6px solid #fcd34d;">
+                    <h3 style="margin-top: 5px;">Domain Expertise</h3>
+                    <p class="muted" style="font-size: 16px;">Data Processing</p>
+                </div>
+                <div class="card fragment" style="text-align: center; border-top: 6px solid #10b981;">
+                    <h3 style="margin-top: 5px;">Computer Science</h3>
+                    <p class="muted" style="font-size: 16px;">Machine Learning</p>
+                </div>
+            </div>
+
+            <div class="fragment" style="text-align:center; margin-top: 30px;">
+                            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">The Profile</div><div class="sub">Skills Overview</div></div>
+              <span class="pill">Data Science Minimum</span>
+            </div>
+            
+            <h2>Essential Skills of a Data Scientist</h2>
+            <p>As you can see, you need to acquire various hard skills and soft skills to be successful.</p>
+            
+            <div class="card-grid" style="grid-template-columns: repeat(4, 1fr); gap: 15px; margin-top: 30px;">
+                <div class="info-card fragment" style="text-align: center; padding: 20px;">🧮 <strong>Math & Statistics</strong></div>
+                <div class="info-card fragment" style="text-align: center; padding: 20px;">⚖️ <strong>Ethical Skills</strong></div>
+                <div class="info-card fragment" style="text-align: center; padding: 20px;">💻 <strong>Coding</strong> (Python, R)</div>
+                <div class="info-card fragment" style="text-align: center; padding: 20px;">🤝 <strong>Team Player</strong></div>
+                <div class="info-card fragment" style="text-align: center; padding: 20px;">📚 <strong>Lifelong Learning</strong></div>
+                <div class="info-card fragment" style="text-align: center; padding: 20px;">🧹 <strong>Data Wrangling</strong></div>
+                <div class="info-card fragment" style="text-align: center; padding: 20px;">📊 <strong>Visualization</strong></div>
+                <div class="info-card fragment" style="text-align: center; padding: 20px;">🤖 <strong>Machine Learning</strong></div>
+                <div class="info-card fragment" style="text-align: center; padding: 20px; grid-column: span 2;">🌍 <strong>Real World Project Skills</strong></div>
+                <div class="info-card fragment" style="text-align: center; padding: 20px; grid-column: span 2;">🗣️ <strong>Communication Skills</strong></div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">The Profile</div><div class="sub">Application</div></div>
+            </div>
+            
+            <h2>Applying the Skills</h2>
+            <p>Why do we need this specific combination of abilities?</p>
+            
+            <div class="grid-2" style="margin-top: 20px;">
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div class="callout fragment" style="margin-top: 0; border-left-color: #38bdf8;">
+                        <strong>Math & Statistics:</strong> Required to properly analyze and visualize data.
+                    </div>
+                    <div class="callout fragment" style="margin-top: 0; border-left-color: #10b981;">
+                        <strong>Machine Learning:</strong> Forms the very heart of Data Science.
+                    </div>
+                    <div class="callout fragment" style="margin-top: 0; border-left-color: #fcd34d;">
+                        <strong>Domain Understanding:</strong> Essential to understand the business problems clearly.
+                    </div>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div class="callout fragment" style="margin-top: 0; border-left-color: #c084fc;">
+                        <strong>Coding Skills:</strong> Needed to actually implement the various complex algorithms.
+                    </div>
+                    <div class="callout fragment" style="margin-top: 0; border-left-color: #fb7185;">
+                        <strong>Communication:</strong> Crucial to deliver key decisions and insights to stakeholders.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">The Profile</div><div class="sub">The Secret</div></div>
+              <span class="pill">Reality Check</span>
+            </div>
+            
+            <h2>The Most Used Skill...</h2>
+            <p>Despite all the advanced mathematics and complex algorithms, there is one core skill every data scientist relies on daily.</p>
+            
+            <div class="fragment" style="display: flex; justify-content: center; margin-top: 40px;">
+                <div class="card" style="max-width: 600px; width: 100%; background: white; border-radius: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); padding: 25px;">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                        <div style="width: 55px; height: 55px; border-radius: 50%; background: var(--soft2); border: 1px solid var(--soft); display: flex; align-items: center; justify-content: center; font-size: 26px;">👨‍💻</div>
+                        <div>
+                            <h3 style="margin: 0; font-size: 18px; color: var(--ink);">One Devloper Army</h3>
+                            <p style="margin: 0; color: var(--muted); font-size: 15px;">@OneDevloperArmy</p>
+                        </div>
+                    </div>
+                    <p style="font-size: 24px; line-height: 1.5; font-weight: 500; color: var(--ink); margin-bottom: 20px;">
+                        If you are a new programmer I just want you to know<br><br>
+                        me and all of my colleagues with years of experience<br><br>
+                        <strong style="color: var(--accent);">Google the most basic things <i>daily</i></strong>
+                    </p>
+                    <div style="border-top: 1px solid var(--soft); padding-top: 15px; color: var(--muted); font-size: 14px; display: flex; gap: 15px;">
+                        <span>12:18 PM • 13 Aug 18</span>
+                        <span>•</span>
+                        <span><strong>2,099</strong> Retweets</span>
+                        <span><strong>5,815</strong> Likes</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Metro College of Technology</div><div class="sub">Section 4</div></div>
+            </div>
+            
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:80%; text-align:center;">
+                <h1 style="font-size: 65px; margin-bottom: 20px; color: var(--accent);">Data Fundamentals</h1>
+                <p style="font-size: 24px; color: var(--muted); max-width: 800px;">Understanding Raw Data, Processed Information, and the classification of gathered data types.</p>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Data Fundamentals</div><div class="sub">Data States</div></div>
+              <span class="pill">Theory vs Application</span>
+            </div>
+            
+            <h2>Raw Data vs. Processed Data</h2>
+            
+            <div class="grid-2">
+              <div style="display: flex; flex-direction: column; gap: 15px;">
+                <div class="callout fragment" style="margin-top: 0; border-left-color: #f59e0b; background: rgba(245,158,11,0.05);">
+                  <h3 style="margin-top:0; color: #d97706;">Raw Data (Source / Atomic)</h3>
+                  <p style="margin:0; font-size:18px;">Data that has <strong>not been processed</strong> for use. It is measured and collected directly from machines, the web, etc., and is usually not in a format ready for analysis.</p>
+                </div>
+                <div class="callout fragment" style="margin-top: 0; border-left-color: #10b981; background: rgba(16,185,129,0.05);">
+                  <h3 style="margin-top:0; color: #059669;">Processed Data</h3>
+                  <p style="margin:0; font-size:18px;">Data that has undergone <strong>cleaning and transformation</strong>. It is converted from raw data into a format that can be easily analyzed and visualized.</p>
+                </div>
+              </div>
+              
+              <div class="card fragment" style="border-top: 6px solid var(--accent);">
+                <h3 style="margin-top:0; color: var(--accent);">Real World: The Supermarket POS</h3>
+                <p style="font-size: 16px;">A Point-of-Sale terminal collects huge volumes of raw data daily, but it yields no information until processed.</p>
+                <ul style="font-size: 16px; padding-left: 20px;">
+                    <li class="fragment"><strong>Processing requires:</strong> Selective extraction, organization, formatting, and analysis.</li>
+                    <li class="fragment"><strong>The Yield:</strong> What items a customer buys, when they buy them, and at what price.</li>
+                    <li class="fragment"><strong>The Action:</strong> This information is subjected to <em>predictive technology analysis</em> to help plan future marketing campaigns.</li>
+                </ul>
+                <div class="fragment" style="text-align: center; margin-top: 15px;">
+                    
+                </div>
+              </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Data Fundamentals</div><div class="sub">Data Gathering</div></div>
+              <span class="pill">Interactive: Click Cards</span>
+            </div>
+            
+            <h2>Terms for Gathered Raw Data</h2>
+            <p>How do we classify the raw data we collect from various sources?</p>
+            
+            <div class="grid-2" style="margin-top: 40px;">
+                <div class="flip-card fragment" onclick="this.classList.toggle('flipped')" style="height: 280px;">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front" style="flex-direction: column; border-left-color: #38bdf8;">
+                            <div style="font-size: 40px; margin-bottom: 10px;">📋</div>
+                            <h2 style="margin:0; border:none; padding:0;">Captured Data</h2>
+                            <p class="muted">Click to reveal definition</p>
+                        </div>
+                        <div class="flip-card-back" style="flex-direction: column; padding: 30px; text-align: left; align-items: flex-start; background: #0284c7;">
+                            <h3 style="margin-top:0; color: white; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 10px; width: 100%;">Captured Data</h3>
+                            <p style="font-size: 20px; font-weight: 500;">Data gathered through <strong>direct observation</strong>.</p>
+                            <p style="font-size: 16px; opacity: 0.9; margin-top: auto;"><strong>Example:</strong> Filling out forms or conducting manual surveys.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flip-card fragment" onclick="this.classList.toggle('flipped')" style="height: 280px;">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front" style="flex-direction: column; border-left-color: #f59e0b;">
+                            <div style="font-size: 40px; margin-bottom: 10px;">⚙️</div>
+                            <h2 style="margin:0; border:none; padding:0;">Exhaust Data</h2>
+                            <p class="muted">Click to reveal definition</p>
+                        </div>
+                        <div class="flip-card-back" style="flex-direction: column; padding: 30px; text-align: left; align-items: flex-start; background: #d97706;">
+                            <h3 style="margin-top:0; color: white; border-bottom: 1px solid rgba(255,255,255,0.3); padding-bottom: 10px; width: 100%;">Exhaust Data</h3>
+                            <p style="font-size: 20px; font-weight: 500;">A <strong>by-product</strong> of a process whose primary purpose is something else.</p>
+                            <p style="font-size: 16px; opacity: 0.9; margin-top: auto;"><strong>Example:</strong> Social media usage metadata (e.g., data that describes a phone call, not the call itself).</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Data Fundamentals</div><div class="sub">Data Types</div></div>
+              <span class="pill">Classification</span>
+            </div>
+            
+            <h2>Types of Data Profiles</h2>
+            
+            <div class="grid-2" style="margin-top: 30px; align-items: stretch;">
+                <div class="card fragment" style="display: flex; flex-direction: column;">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                        <div style="font-size: 32px;">💳</div>
+                        <h3 style="margin:0; color: var(--accent);">Transactional Data</h3>
+                    </div>
+                    <p style="margin-top: 0;">Data that captures the details of an event or exchange as it occurs.</p>
+                    <div style="margin-top: auto;">
+                        <h4 style="margin-bottom: 10px; color: var(--muted);">Examples:</h4>
+                        <div class="info-card" style="padding: 10px; margin-bottom: 8px;">🛒 Sale of an item (Receipt)</div>
+                        <div class="info-card" style="padding: 10px;">🏦 Credit card payment</div>
+                    </div>
+                </div>
+
+                <div class="card fragment" style="display: flex; flex-direction: column;">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                        <div style="font-size: 32px;">👤</div>
+                        <h3 style="margin:0; color: var(--accent);">Non-Transactional Data</h3>
+                    </div>
+                    <p style="margin-top: 0;">Static or characteristic data that describes an entity rather than an event.</p>
+                    <div style="margin-top: auto;">
+                        <h4 style="margin-bottom: 10px; color: var(--muted);">Examples:</h4>
+                        <div class="info-card" style="padding: 10px; margin-bottom: 8px;">🌍 Demographic data (Age, Location)</div>
+                        <div class="info-card" style="padding: 10px;">📝 User account profiles</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="fragment" style="text-align: center; margin-top: 20px;">
+                
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Metro College of Technology</div><div class="sub">Section 5</div></div>
+            </div>
+            
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:80%; text-align:center;">
+                <h1 style="font-size: 65px; margin-bottom: 20px; color: var(--accent);">Data Structures &<br>Analytics vs. Science</h1>
+                <p style="font-size: 24px; color: var(--muted); max-width: 800px;">Exploring rectangular data, the structured-to-unstructured spectrum, and defining professional roles.</p>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Data Structures</div><div class="sub">Formatting</div></div>
+              <span class="pill">Data Transformation</span>
+            </div>
+            
+            <h2>Rectangular Data</h2>
+            <p>Rectangular data is a two-dimensional matrix where <strong>rows indicate records (cases)</strong> and <strong>columns indicate features (variables)</strong>.</p>
+            
+            <div class="grid-2" style="margin-top: 20px;">
+                <div class="callout" style="margin-top: 0; background: #f8fafc; border-left-color: #64748b;">
+                    <h3 style="margin-top:0; color: #334155;">The Challenge</h3>
+                    <p>Data doesn't always start in this form. Unstructured data (like text) must be processed and manipulated so it can be represented as a set of features.</p>
+                </div>
+                
+                <div class="card fragment" style="padding: 15px;">
+                    <h3 style="margin-top:0; font-size:18px; color: var(--accent);">Step 1: Raw Unstructured Text</h3>
+                    <div class="info-card" style="padding: 10px; font-family: var(--mono); font-size: 14px; background: #1e293b; color: #e2e8f0; border: none;">
+                        1. "I like shopping."<br>
+                        2. "I don't like shopping."
+                    </div>
+                </div>
+            </div>
+
+            <div class="card fragment" style="margin-top: 15px; border-top: 4px solid var(--accent);">
+                <h3 style="margin-top:0; font-size:18px;">Step 2: Extracted Rectangular Matrix (Features)</h3>
+                <table style="font-size: 14px; margin-top: 10px;">
+                    <tr>
+                        <th style="background: var(--accent);">ID</th>
+                        <th style="background: var(--accent);">T</th>
+                        <th style="background: var(--accent);">do</th>
+                        <th style="background: var(--accent);">not</th>
+                        <th style="background: var(--accent);">like</th>
+                        <th style="background: var(--accent);">shopping</th>
+                    </tr>
+                    <tr>
+                        <td>1</td><td>1</td><td>0</td><td>0</td><td>1</td><td>1</td>
+                    </tr>
+                    <tr>
+                        <td>2</td><td>1</td><td>1</td><td>1</td><td>1</td><td>1</td>
+                    </tr>
+                </table>
+            </div>
+                        
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Data Structures</div><div class="sub">Classification</div></div>
+              <span class="pill">The Data Spectrum</span>
+            </div>
+            
+            <h2>The Data Spectrum</h2>
+            
+            <div class="grid-3" style="margin-top: 30px; align-items: stretch;">
+                <div class="card fragment" style="display: flex; flex-direction: column; border-top: 6px solid #10b981;">
+                    <h3 style="margin-top: 0; text-align: center;">Structured Data</h3>
+                    <div style="text-align: center; font-size: 40px; margin-bottom: 10px;">🗄️</div>
+                    <p style="text-align: center; font-weight: bold; margin-top: 0;">Databases</p>
+                    <ul style="font-size: 16px; padding-left: 20px; margin-top: auto;">
+                        <li>Difficult/Purpose-driven to collect</li>
+                        <li>Affordable to process</li>
+                        <li>Limited insights</li>
+                        <li>Requires active participation</li>
+                        <li>Transparency promotes privacy</li>
+                    </ul>
+                </div>
+
+                <div class="card fragment" style="display: flex; flex-direction: column; border-top: 6px solid #f59e0b;">
+                    <h3 style="margin-top: 0; text-align: center;">Semi-structured</h3>
+                    <div style="text-align: center; font-size: 40px; margin-bottom: 10px;">📄</div>
+                    <p style="text-align: center; font-weight: bold; margin-top: 0;">XML / JSON / Email</p>
+                    <div class="muted" style="font-size: 15px; text-align: center; margin-top: auto; padding: 10px;">
+                        Bridges the gap between raw text and strict relational databases using tags and markers.
+                    </div>
+                </div>
+
+                <div class="card fragment" style="display: flex; flex-direction: column; border-top: 6px solid #ef4444;">
+                    <h3 style="margin-top: 0; text-align: center;">Unstructured Data</h3>
+                    <div style="text-align: center; font-size: 40px; margin-bottom: 10px;">🌐</div>
+                    <p style="text-align: center; font-weight: bold; margin-top: 0;">Audio, Video, Web, NLP</p>
+                    <ul style="font-size: 16px; padding-left: 20px; margin-top: auto;">
+                        <li>Easy to collect (requires presence only)</li>
+                        <li>Pricier to process</li>
+                        <li>Nearly infinite insights & reusable</li>
+                        <li>Lack of transparency/privacy</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Data Structures</div><div class="sub">Comparison</div></div>
+              <span class="pill">The 20 / 80 Rule</span>
+            </div>
+            
+            <h2>Structured vs. Unstructured Data</h2>
+                        <div class="grid-2" style="margin-top: 30px;">
+                <div class="fragment">
+                    <div style="background: var(--accent); color: white; padding: 10px 20px; border-radius: 12px 12px 0 0; font-weight: bold; font-size: 22px;">Structured Data</div>
+                    <div style="border: 2px solid var(--accent); padding: 20px; border-radius: 0 0 12px 12px; background: rgba(22,163,74,0.05);">
+                        <div style="font-size: 48px; font-weight: 900; color: var(--accent); text-align: center;">20%</div>
+                        <p style="text-align: center; margin-top: 0; font-size: 14px; color: var(--muted);">of Enterprise Data (Gartner)</p>
+                        <ul style="font-size: 16px; margin-bottom: 0;">
+                            <li>Can be displayed in rows/columns</li>
+                            <li>Numbers, dates, and strings</li>
+                            <li>Requires <strong>less</strong> storage</li>
+                            <li>Easier to manage and protect with legacy solutions</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="fragment">
+                    <div style="background: #ef4444; color: white; padding: 10px 20px; border-radius: 12px 12px 0 0; font-weight: bold; font-size: 22px;">Unstructured Data</div>
+                    <div style="border: 2px solid #ef4444; padding: 20px; border-radius: 0 0 12px 12px; background: rgba(239,68,68,0.05);">
+                        <div style="font-size: 48px; font-weight: 900; color: #ef4444; text-align: center;">80%</div>
+                        <p style="text-align: center; margin-top: 0; font-size: 14px; color: var(--muted);">of Enterprise Data (Gartner)</p>
+                        <ul style="font-size: 16px; margin-bottom: 0;">
+                            <li>Cannot be displayed in simple rows/columns</li>
+                            <li>Images, audio, video, emails</li>
+                            <li>Requires <strong>more</strong> storage</li>
+                            <li>More difficult to manage and protect</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Roles</div><div class="sub">Analyst vs Scientist</div></div>
+              <span class="pill">Workflow Comparison</span>
+            </div>
+            
+            <h2>Data Analytics vs. Data Science</h2>
+            <p>While they overlap, they serve fundamentally different purposes regarding the timeline of data.</p>
+                        <div class="grid-2" style="margin-top: 30px;">
+                <div class="card fragment" style="position: relative;">
+                    <div style="position: absolute; top: -15px; left: 20px; background: #0284c7; color: white; padding: 4px 12px; border-radius: 999px; font-weight: bold; font-size: 14px;">The Analyst</div>
+                    <h3 style="margin-top: 15px; color: #0284c7;">Explaining the Past & Present</h3>
+                    <p style="font-size: 16px;">A Data Analyst usually explains <strong>what is going on</strong> by processing the history of the data.</p>
+                    <ul style="font-size: 16px; color: var(--muted);">
+                        <li>Business Administration</li>
+                        <li>Exploratory Data Analysis (EDA)</li>
+                    </ul>
+                </div>
+
+                <div class="card fragment" style="position: relative; border-color: var(--accent);">
+                    <div style="position: absolute; top: -15px; left: 20px; background: var(--accent); color: white; padding: 4px 12px; border-radius: 999px; font-weight: bold; font-size: 14px;">The Scientist</div>
+                    <h3 style="margin-top: 15px; color: var(--accent);">Predicting the Future</h3>
+                    <p style="font-size: 16px;">A Data Scientist does EDA, but also uses advanced algorithms to <strong>identify future occurrences</strong>.</p>
+                    <ul style="font-size: 16px; color: var(--muted);">
+                        <li>Exploratory Data Analysis (EDA)</li>
+                        <li>Machine Learning & Advanced Algorithms</li>
+                        <li>Data Product Engineering</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="callout fragment" style="text-align: center; margin-top: 20px;">
+                <strong>Summary:</strong> A Data Scientist will look at the data from many angles, sometimes angles not known earlier, to create new predictive products.
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Practice Game 1</div><div class="sub">Data Classification</div></div>
+              <span class="pill">Interactive Quiz</span>
+            </div>
+            
+            <h2>Knowledge Check: Data Types</h2>
+            <p>Test your knowledge! Click the correct classification for each data example.</p>
+            
+            <div class="grid-2" style="margin-top: 20px;">
+                <div class="card fragment" style="padding: 20px;">
+                    <h3 style="margin-top: 0; font-size: 20px;">1. Audio & Video Files</h3>
+                    <p style="font-size: 16px; color: var(--muted); margin-bottom: 20px;">Collected from web scraping and security cameras.</p>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="mini-btn" style="flex: 1; font-size: 16px; padding: 12px;" onclick="quizAnswer(this, false)">Structured</button>
+                        <button class="mini-btn" style="flex: 1; font-size: 16px; padding: 12px;" data-correct="true" onclick="quizAnswer(this, true)">Unstructured</button>
+                    </div>
+                    <button class="quiz-reset-btn" onclick="resetQuiz(this)">↺ Try Again</button>
+                </div>
+
+                <div class="card fragment" style="padding: 20px;">
+                    <h3 style="margin-top: 0; font-size: 20px;">2. Credit Card Payment</h3>
+                    <p style="font-size: 16px; color: var(--muted); margin-bottom: 20px;">Captures the exact time, amount, and location of an exchange.</p>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="mini-btn" style="flex: 1; font-size: 16px; padding: 12px;" data-correct="true" onclick="quizAnswer(this, true)">Transactional</button>
+                        <button class="mini-btn" style="flex: 1; font-size: 16px; padding: 12px;" onclick="quizAnswer(this, false)">Non-Transactional</button>
+                    </div>
+                    <button class="quiz-reset-btn" onclick="resetQuiz(this)">↺ Try Again</button>
+                </div>
+
+                <div class="card fragment" style="padding: 20px;">
+                    <h3 style="margin-top: 0; font-size: 20px;">3. Relational SQL Database</h3>
+                    <p style="font-size: 16px; color: var(--muted); margin-bottom: 20px;">Data formatted perfectly into rows and columns.</p>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="mini-btn" style="flex: 1; font-size: 16px; padding: 12px;" data-correct="true" onclick="quizAnswer(this, true)">Structured</button>
+                        <button class="mini-btn" style="flex: 1; font-size: 16px; padding: 12px;" onclick="quizAnswer(this, false)">Unstructured</button>
+                    </div>
+                    <button class="quiz-reset-btn" onclick="resetQuiz(this)">↺ Try Again</button>
+                </div>
+
+                <div class="card fragment" style="padding: 20px;">
+                    <h3 style="margin-top: 0; font-size: 20px;">4. User Demographics</h3>
+                    <p style="font-size: 16px; color: var(--muted); margin-bottom: 20px;">A user's age, gender, and home address saved in a profile.</p>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="mini-btn" style="flex: 1; font-size: 16px; padding: 12px;" onclick="quizAnswer(this, false)">Transactional</button>
+                        <button class="mini-btn" style="flex: 1; font-size: 16px; padding: 12px;" data-correct="true" onclick="quizAnswer(this, true)">Non-Transactional</button>
+                    </div>
+                    <button class="quiz-reset-btn" onclick="resetQuiz(this)">↺ Try Again</button>
+                </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Practice Game 2</div><div class="sub">Role Assignment</div></div>
+              <span class="pill">Interactive Quiz</span>
+            </div>
+            
+            <h2>Knowledge Check: Who Does What?</h2>
+            <p>Assign the correct professional role to each of the following tasks.</p>
+            
+            <div class="card-grid" style="grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+                <div class="info-card fragment" style="justify-content: space-between;">
+                    <div>
+                        <h3 style="margin-top: 0; color: var(--accent);">Predicting the Future</h3>
+                        <p style="font-size: 16px; margin-bottom: 20px;">Uses advanced Machine Learning algorithms to predict future occurrences and build models.</p>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="mini-btn" style="flex: 1;" onclick="quizAnswer(this, false)">Data Analyst</button>
+                        <button class="mini-btn" style="flex: 1;" data-correct="true" onclick="quizAnswer(this, true)">Data Scientist</button>
+                    </div>
+                    <button class="quiz-reset-btn" onclick="resetQuiz(this)">↺ Try Again</button>
+                </div>
+
+                <div class="info-card fragment" style="justify-content: space-between;">
+                    <div>
+                        <h3 style="margin-top: 0; color: #0284c7;">Explaining the Past</h3>
+                        <p style="font-size: 16px; margin-bottom: 20px;">Processes historical data to explain what has happened and what is currently going on.</p>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="mini-btn" style="flex: 1;" data-correct="true" onclick="quizAnswer(this, true)">Data Analyst</button>
+                        <button class="mini-btn" style="flex: 1;" onclick="quizAnswer(this, false)">Data Scientist</button>
+                    </div>
+                    <button class="quiz-reset-btn" onclick="resetQuiz(this)">↺ Try Again</button>
+                </div>
+
+                <div class="info-card fragment" style="justify-content: space-between;">
+                    <div>
+                        <h3 style="margin-top: 0; color: #0284c7;">Business Administration</h3>
+                        <p style="font-size: 16px; margin-bottom: 20px;">Focuses heavily on business rules, generating reports, and tracking KPIs.</p>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="mini-btn" style="flex: 1;" data-correct="true" onclick="quizAnswer(this, true)">Data Analyst</button>
+                        <button class="mini-btn" style="flex: 1;" onclick="quizAnswer(this, false)">Data Scientist</button>
+                    </div>
+                    <button class="quiz-reset-btn" onclick="resetQuiz(this)">↺ Try Again</button>
+                </div>
+
+                <div class="info-card fragment" style="justify-content: space-between;">
+                    <div>
+                        <h3 style="margin-top: 0; color: var(--accent);">Data Product Engineering</h3>
+                        <p style="font-size: 16px; margin-bottom: 20px;">Looks at data from entirely new angles to engineer and deploy net-new data products.</p>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="mini-btn" style="flex: 1;" onclick="quizAnswer(this, false)">Data Analyst</button>
+                        <button class="mini-btn" style="flex: 1;" data-correct="true" onclick="quizAnswer(this, true)">Data Scientist</button>
+                    </div>
+                    <button class="quiz-reset-btn" onclick="resetQuiz(this)">↺ Try Again</button>
+                </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section><section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Concepts</div><div class="sub">DS vs DA</div></div>
+              <span class="pill">Core Differences</span>
+            </div>
+            
+            <h2>Data Science vs. Data Analytics</h2>
+            <p>While closely related, these two fields serve fundamentally different purposes.</p>
+            
+            <div class="grid-2" style="margin-top: 30px; align-items: stretch;">
+                <div class="card fragment" style="border-top: 6px solid var(--accent); background: rgba(22,163,74,0.05);">
+                    <div style="font-size: 40px; margin-bottom: 10px;">🔮</div>
+                    <h3 style="margin-top:0; color: var(--accent);">Data Science</h3>
+                    <p style="font-size: 18px;">Focuses on finding meaningful <strong>correlations</strong> between large datasets.</p>
+                    <ul style="font-size: 16px; padding-left: 20px;">
+                        <li>Brings forth new questions and broad insights.</li>
+                        <li>Focuses heavily on <strong>Machine Learning</strong>.</li>
+                        <li>Built around <strong>predictive modeling</strong> and forecasting the future.</li>
+                    </ul>
+                </div>
+
+                <div class="card fragment" style="border-top: 6px solid #0284c7; background: rgba(2,132,199,0.05);">
+                    <div style="font-size: 40px; margin-bottom: 10px;">📊</div>
+                    <h3 style="margin-top:0; color: #0284c7;">Data Analytics</h3>
+                    <p style="font-size: 18px;">Designed to uncover the <strong>specifics</strong> of extracted insights.</p>
+                    <ul style="font-size: 16px; padding-left: 20px;">
+                        <li>A branch of Data Science focusing on specific answers to questions.</li>
+                        <li>Focuses more on viewing <strong>historical data</strong> in context.</li>
+                        <li>Aims to explain what happened and why.</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Skill Matrix</div><div class="sub">DS vs DA</div></div>
+              <span class="pill">Required Skills</span>
+            </div>
+            
+            <h2>Skill Comparison: DS vs. DA</h2>
+            
+            <div class="grid-2" style="margin-top: 20px;">
+                <div>
+                    <h3 style="color: #0284c7;">Data Analytics Skills</h3>
+                    <p style="font-size: 16px; color: var(--muted); margin-bottom: 10px;">Intermediate Statistics & Problem Solving</p>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <div class="info-card fragment" style="padding: 12px; font-size: 15px; flex-direction: row; justify-content: flex-start; gap: 10px;">
+                            <strong>Spreadsheets & DBs:</strong> Dexterity in Excel and SQL databases to slice and dice data.
+                        </div>
+                        <div class="info-card fragment" style="padding: 12px; font-size: 15px; flex-direction: row; justify-content: flex-start; gap: 10px;">
+                            <strong>Reporting:</strong> Experience working with BI tools like Power BI/Tableau.
+                        </div>
+                        <div class="info-card fragment" style="padding: 12px; font-size: 15px; flex-direction: row; justify-content: flex-start; gap: 10px;">
+                            <strong>Stats Tools:</strong> Knowledge of Python, R, or SAS.
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 style="color: var(--accent);">Data Science Skills</h3>
+                    <p style="font-size: 16px; color: var(--muted); margin-bottom: 10px;">Math, Advanced Stats, Predictive Modelling, ML</p>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <div class="info-card fragment" style="padding: 12px; font-size: 15px; flex-direction: row; justify-content: flex-start; gap: 10px;">
+                            <strong>Big Data:</strong> Proficiency in tools like Hadoop and Spark.
+                        </div>
+                        <div class="info-card fragment" style="padding: 12px; font-size: 15px; flex-direction: row; justify-content: flex-start; gap: 10px;">
+                            <strong>Advanced DBs:</strong> Expertise in SQL and NoSQL databases (Cassandra, MongoDB).
+                        </div>
+                        <div class="info-card fragment" style="padding: 12px; font-size: 15px; flex-direction: row; justify-content: flex-start; gap: 10px;">
+                            <strong>Visualization:</strong> Experience with QlikView, D3.js, and Tableau.
+                        </div>
+                        <div class="info-card fragment" style="padding: 12px; font-size: 15px; flex-direction: row; justify-content: flex-start; gap: 10px;">
+                            <strong>Programming:</strong> Python, R, SAS, Spark, and Scala.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Business Intelligence</div><div class="sub">Introduction</div></div>
+              <span class="pill">Core Components</span>
+            </div>
+            
+            <h2>What is Business Intelligence (BI)?</h2>
+            <p style="font-size: 18px;">BI refers to the technologies, applications, strategies, and practices used to collect, integrate, analyze, and present business information. <strong>The goal of BI is to support better business decision making</strong> by transforming data into actionable insights.</p>
+            
+            <h3 style="margin-top: 20px;">Core Components of BI</h3>
+            <div class="card-grid" style="grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 10px;">
+                <div class="info-card fragment" style="padding: 15px; flex-direction: column; align-items: flex-start;">
+                    <strong style="color: var(--accent); margin-bottom: 5px;">1. Data Warehousing</strong>
+                    <span style="font-size: 14px;">Aggregating data from multiple sources into a central repository.</span>
+                </div>
+                <div class="info-card fragment" style="padding: 15px; flex-direction: column; align-items: flex-start;">
+                    <strong style="color: var(--accent); margin-bottom: 5px;">2. Data Mining</strong>
+                    <span style="font-size: 14px;">Using sophisticated tools to discover patterns in large datasets.</span>
+                </div>
+                <div class="info-card fragment" style="padding: 15px; flex-direction: column; align-items: flex-start;">
+                    <strong style="color: var(--accent); margin-bottom: 5px;">3. Reporting</strong>
+                    <span style="font-size: 14px;">Providing timely reports and dashboards to stakeholders.</span>
+                </div>
+                <div class="info-card fragment" style="padding: 15px; flex-direction: column; align-items: flex-start;">
+                    <strong style="color: var(--accent); margin-bottom: 5px;">4. Querying</strong>
+                    <span style="font-size: 14px;">Allowing users to perform ad-hoc analyses for specific questions.</span>
+                </div>
+                <div class="info-card fragment" style="padding: 15px; flex-direction: column; align-items: flex-start;">
+                    <strong style="color: var(--accent); margin-bottom: 5px;">5. Analytical Processing</strong>
+                    <span style="font-size: 14px;">Offering capabilities for complex calculations and data modeling.</span>
+                </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Business Intelligence</div><div class="sub">Goals</div></div>
+              <span class="pill">Objectives</span>
+            </div>
+            
+            <h2>Objectives of Business Intelligence</h2>
+            
+            <div class="grid-2" style="margin-top: 30px;">
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div class="callout fragment" style="margin-top: 0; border-left-color: #f59e0b;">
+                        <strong style="font-size: 18px;">Improving Decision Making:</strong><br>
+                        <span style="font-size: 16px;">Provides managers and employees with up-to-date business performance information.</span>
+                    </div>
+                    <div class="callout fragment" style="margin-top: 0; border-left-color: #10b981;">
+                        <strong style="font-size: 18px;">Enhancing Operational Efficiency:</strong><br>
+                        <span style="font-size: 16px;">Identifies bottlenecks, inefficiencies, and patterns to streamline operations.</span>
+                    </div>
+                    <div class="callout fragment" style="margin-top: 0; border-left-color: #38bdf8;">
+                        <strong style="font-size: 18px;">Increasing Organizational Knowledge:</strong><br>
+                        <span style="font-size: 16px;">Turns data into knowledge, helping organizations understand their business in deeper context.</span>
+                    </div>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div class="callout fragment" style="margin-top: 0; border-left-color: #c084fc;">
+                        <strong style="font-size: 18px;">Identifying Market Trends:</strong><br>
+                        <span style="font-size: 16px;">Helps companies understand external market trends to adjust strategies accordingly.</span>
+                    </div>
+                    <div class="callout fragment" style="margin-top: 0; border-left-color: #fb7185;">
+                        <strong style="font-size: 18px;">Improving Sales and Negotiations:</strong><br>
+                        <span style="font-size: 16px;">Understands customer behavior and trends to better tailor sales strategies and tactics.</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Business Intelligence</div><div class="sub">Ecosystem & Future</div></div>
+              <span class="pill">Tech & Trends</span>
+            </div>
+            
+            <h2>BI Tools & The Future</h2>
+            
+            <div class="grid-2" style="margin-top: 20px;">
+                <div class="card fragment">
+                    <h3 style="margin-top:0; color: var(--ink);">Examples of BI Tools</h3>
+                    <ul style="font-size: 15px; padding-left: 20px; color: var(--muted);">
+                        <li style="margin-bottom: 8px;"><strong>Data Visualization:</strong> Tableau, Microsoft Power BI, Qlik.</li>
+                        <li style="margin-bottom: 8px;"><strong>Databases & Warehouses:</strong> SQL databases, Oracle, Amazon Redshift, Snowflake.</li>
+                        <li style="margin-bottom: 8px;"><strong>ETL Tools:</strong> Informatica, Talend, Microsoft SSIS.</li>
+                        <li><strong>Analytical Tools:</strong> SAS, SPSS, and R for sophisticated analysis.</li>
+                    </ul>
+                </div>
+
+                <div class="card fragment" style="background: var(--accent); color: white; border: none;">
+                    <h3 style="margin-top:0; color: white;">Evolution & Future of BI</h3>
+                    <p style="font-size: 16px; line-height: 1.5;">The field is continually evolving by embracing new technologies:</p>
+                    <ul style="font-size: 15px; padding-left: 20px;">
+                        <li style="margin-bottom: 8px;"><strong>AI & ML</strong> for predictive analytics.</li>
+                        <li style="margin-bottom: 8px;"><strong>Cloud Computing</strong> for extreme scalability and accessibility.</li>
+                        <li><strong>Big Data</strong> technologies for vast datasets.</li>
+                    </ul>
+                    <p style="font-size: 15px; font-style: italic; margin-bottom: 0;">The future will be more automated, intuitive, and embedded into daily business operations.</p>
+                </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Business Intelligence</div><div class="sub">Career Paths</div></div>
+              <span class="pill">Interactive: Click Cards</span>
+            </div>
+            
+            <h2>Roles within Business Intelligence</h2>
+            <p style="font-size: 18px;">BI is not a specific role; it's a discipline. Here are the specific career paths within the BI ecosystem:</p>
+            
+            <div class="grid-3" style="margin-top: 20px;">
+                <div class="flip-card fragment" onclick="this.classList.toggle('flipped')" style="height: 180px;">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front" style="flex-direction: column; border-left-color: #38bdf8;">
+                            <h3 style="margin:0 0 10px 0;">BI Analyst</h3>
+                            <p class="muted" style="font-size: 14px;">Click to reveal responsibilities</p>
+                        </div>
+                        <div class="flip-card-back" style="flex-direction: column; padding: 15px; text-align: left; align-items: flex-start; background: #0284c7;">
+                            <h4 style="margin:0 0 10px 0; color: white;">BI Analyst</h4>
+                            <p style="font-size: 13px; font-weight: normal; margin: 0;">Analyzes data using BI tools to provide insights and recommendations. Often creates reports and dashboards for stakeholders.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flip-card fragment" onclick="this.classList.toggle('flipped')" style="height: 180px;">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front" style="flex-direction: column; border-left-color: #f59e0b;">
+                            <h3 style="margin:0 0 10px 0;">BI Developer</h3>
+                            <p class="muted" style="font-size: 14px;">Click to reveal responsibilities</p>
+                        </div>
+                        <div class="flip-card-back" style="flex-direction: column; padding: 15px; text-align: left; align-items: flex-start; background: #d97706;">
+                            <h4 style="margin:0 0 10px 0; color: white;">BI Developer</h4>
+                            <p style="font-size: 13px; font-weight: normal; margin: 0;">Focuses on designing and developing BI solutions, such as data warehouses, ETL processes, and data visualization dashboards.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flip-card fragment" onclick="this.classList.toggle('flipped')" style="height: 180px;">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front" style="flex-direction: column; border-left-color: #10b981;">
+                            <h3 style="margin:0 0 10px 0;">BI Consultant</h3>
+                            <p class="muted" style="font-size: 14px;">Click to reveal responsibilities</p>
+                        </div>
+                        <div class="flip-card-back" style="flex-direction: column; padding: 15px; text-align: left; align-items: flex-start; background: #059669;">
+                            <h4 style="margin:0 0 10px 0; color: white;">BI Consultant</h4>
+                            <p style="font-size: 13px; font-weight: normal; margin: 0;">Works with organizations to develop BI strategies, choose tools, and implement solutions to meet business needs.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flip-card fragment" onclick="this.classList.toggle('flipped')" style="height: 180px; grid-column: span 1;">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front" style="flex-direction: column; border-left-color: #c084fc;">
+                            <h3 style="margin:0 0 10px 0;">BI Manager</h3>
+                            <p class="muted" style="font-size: 14px;">Click to reveal responsibilities</p>
+                        </div>
+                        <div class="flip-card-back" style="flex-direction: column; padding: 15px; text-align: left; align-items: flex-start; background: #9333ea;">
+                            <h4 style="margin:0 0 10px 0; color: white;">BI Manager</h4>
+                            <p style="font-size: 13px; font-weight: normal; margin: 0;">Oversees BI strategy, implementation, and operations. Manages BI projects/teams, ensuring alignment with objectives.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flip-card fragment" onclick="this.classList.toggle('flipped')" style="height: 180px; grid-column: span 2;">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front" style="flex-direction: column; border-left-color: #ef4444;">
+                            <h3 style="margin:0 0 10px 0;">Data Analyst / Data Scientist</h3>
+                            <p class="muted" style="font-size: 14px;">Click to reveal responsibilities</p>
+                        </div>
+                        <div class="flip-card-back" style="flex-direction: column; padding: 15px; text-align: left; align-items: flex-start; background: #dc2626;">
+                            <h4 style="margin:0 0 10px 0; color: white;">Data Analyst / Data Scientist</h4>
+                            <p style="font-size: 13px; font-weight: normal; margin: 0;">While not exclusively BI roles, they work closely with BI tools and processes to analyze data and generate actionable insights.<br><br><em>Note: All roles require a mix of technical skills and business acumen.</em></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Metro College of Technology</div><div class="sub">Section 6</div></div>
+            </div>
+            
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:80%; text-align:center;">
+                <h1 style="font-size: 65px; margin-bottom: 20px; color: var(--accent);">Data Science <br><span style="color: var(--muted); font-size: 50px;">vs.</span><br> Business Intelligence</h1>
+                <p style="font-size: 24px; color: var(--muted); max-width: 800px;">Understanding the differences and synergies between these two pivotal disciplines to effectively harness data for competitive advantage.</p>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">DS vs BI</div><div class="sub">Purpose & Focus</div></div>
+              <span class="pill">Core Differences</span>
+            </div>
+            
+            <h2>Purpose and Focus</h2>
+            <p>While both play critical roles in a data-driven organization, they focus on different ends of the spectrum.</p>
+            
+            <div class="grid-2" style="margin-top: 30px; align-items: stretch;">
+                
+                <div class="card fragment" style="border-top: 6px solid #0284c7; background: rgba(2,132,199,0.05); display: flex; flex-direction: column;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">⏪</div>
+                    <h3 style="margin-top:0; color: #0284c7;">Business Intelligence</h3>
+                    <p style="font-weight: bold; margin-top: 0; color: var(--ink);">Looking Backward</p>
+                    <p style="font-size: 16px;">Centered around analyzing <strong>past and present data</strong> to inform business decisions.</p>
+                    <ul style="font-size: 16px; padding-left: 20px; margin-top: auto;">
+                        <li>Transforms data into actionable tactical intelligence.</li>
+                        <li>Heavily utilizes reporting, querying, and dashboards.</li>
+                        <li><strong>Outcome:</strong> Descriptive Analytics (What is happening and why?)</li>
+                    </ul>
+                </div>
+
+                <div class="card fragment" style="border-top: 6px solid var(--accent); background: rgba(22,163,74,0.05); display: flex; flex-direction: column;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">⏩</div>
+                    <h3 style="margin-top:0; color: var(--accent);">Data Science</h3>
+                    <p style="font-weight: bold; margin-top: 0; color: var(--ink);">Looking Forward</p>
+                    <p style="font-size: 16px;">Focused on extracting knowledge to <strong>forecast future events</strong> and uncover hidden patterns.</p>
+                    <ul style="font-size: 16px; padding-left: 20px; margin-top: auto;">
+                        <li>Employs predictive modeling and complex algorithms.</li>
+                        <li>Works with both structured and unstructured data.</li>
+                        <li><strong>Outcome:</strong> Predictive/Prescriptive Analytics (What will happen next?)</li>
+                    </ul>
+                </div>
+
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">DS vs BI</div><div class="sub">Tools & Skills</div></div>
+              <span class="pill">Interactive: Click Cards</span>
+            </div>
+            
+            <h2>Tools & Skills Matrix</h2>
+            <p>Click the cards below to reveal the technological and human requirements for each discipline.</p>
+            
+            <div class="grid-2" style="margin-top: 30px;">
+                <div style="display: flex; flex-direction: column; gap: 20px;">
+                    <h3 style="color: #0284c7; text-align: center; margin: 0;">Business Intelligence</h3>
+                    
+                    <div class="flip-card fragment" onclick="this.classList.toggle('flipped')" style="height: 180px;">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front" style="flex-direction: column; border-left-color: #0284c7;">
+                                <h3 style="margin:0 0 10px 0;">BI Tools</h3>
+                                <p class="muted" style="font-size: 14px;">Aggregation & Reporting</p>
+                            </div>
+                            <div class="flip-card-back" style="flex-direction: column; padding: 15px; text-align: left; align-items: flex-start; background: #0284c7;">
+                                <h4 style="margin:0 0 10px 0; color: white;">BI Technologies</h4>
+                                <ul style="font-size: 14px; font-weight: normal; margin: 0; padding-left: 15px;">
+                                    <li>Tableau</li>
+                                    <li>Microsoft Power BI</li>
+                                    <li>QlikView</li>
+                                    <li>SAS BI</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flip-card fragment" onclick="this.classList.toggle('flipped')" style="height: 180px;">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front" style="flex-direction: column; border-left-color: #0284c7;">
+                                <h3 style="margin:0 0 10px 0;">BI Skills</h3>
+                                <p class="muted" style="font-size: 14px;">Communication & Analysis</p>
+                            </div>
+                            <div class="flip-card-back" style="flex-direction: column; padding: 15px; text-align: left; align-items: flex-start; background: #0284c7;">
+                                <h4 style="margin:0 0 10px 0; color: white;">BI Professional Skills</h4>
+                                <ul style="font-size: 14px; font-weight: normal; margin: 0; padding-left: 15px;">
+                                    <li>Strong business background & process understanding</li>
+                                    <li>Data analysis & querying</li>
+                                    <li>Exceptional communication to translate business needs</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 20px;">
+                    <h3 style="color: var(--accent); text-align: center; margin: 0;">Data Science</h3>
+                    
+                    <div class="flip-card fragment" onclick="this.classList.toggle('flipped')" style="height: 180px;">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front" style="flex-direction: column; border-left-color: var(--accent);">
+                                <h3 style="margin:0 0 10px 0;">DS Tools</h3>
+                                <p class="muted" style="font-size: 14px;">Programming & Machine Learning</p>
+                            </div>
+                            <div class="flip-card-back" style="flex-direction: column; padding: 15px; text-align: left; align-items: flex-start; background: var(--accent);">
+                                <h4 style="margin:0 0 10px 0; color: white;">DS Technologies</h4>
+                                <ul style="font-size: 14px; font-weight: normal; margin: 0; padding-left: 15px;">
+                                    <li>Languages: Python, R</li>
+                                    <li>ML Libraries: TensorFlow, scikit-learn</li>
+                                    <li>Big Data: Apache Spark, Hadoop</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flip-card fragment" onclick="this.classList.toggle('flipped')" style="height: 180px;">
+                        <div class="flip-card-inner">
+                            <div class="flip-card-front" style="flex-direction: column; border-left-color: var(--accent);">
+                                <h3 style="margin:0 0 10px 0;">DS Skills</h3>
+                                <p class="muted" style="font-size: 14px;">Math & Advanced Algorithms</p>
+                            </div>
+                            <div class="flip-card-back" style="flex-direction: column; padding: 15px; text-align: left; align-items: flex-start; background: var(--accent);">
+                                <h4 style="margin:0 0 10px 0; color: white;">DS Professional Skills</h4>
+                                <ul style="font-size: 14px; font-weight: normal; margin: 0; padding-left: 15px;">
+                                    <li>Strong foundation in Mathematics & Statistics</li>
+                                    <li>Computer Science & Machine Learning</li>
+                                    <li>Ability to create complex models with diverse datasets</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">DS vs BI</div><div class="sub">Synergy</div></div>
+              <span class="pill">Integration</span>
+            </div>
+            
+            <h2>Applications & Collaboration</h2>
+            
+            <div class="grid-2" style="margin-top: 20px;">
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <div class="info-card fragment" style="border-left-color: #0284c7;">
+                        <h4 style="margin: 0 0 5px 0; color: #0284c7;">BI Applications</h4>
+                        <p style="margin: 0; font-size: 15px;">Measuring performance against business goals, financial reporting, market analysis, and optimizing operational efficiency.</p>
+                    </div>
+                    <div class="info-card fragment" style="border-left-color: var(--accent);">
+                        <h4 style="margin: 0 0 5px 0; color: var(--accent);">Data Science Applications</h4>
+                        <p style="margin: 0; font-size: 15px;">Developing AI models for customer behavior prediction, building fraud detection algorithms, or optimizing supply chains.</p>
+                    </div>
+                </div>
+                
+                <div class="card fragment" style="background: var(--ink); color: white; border: none; display: flex; flex-direction: column; justify-content: center;">
+                    <h3 style="margin-top:0; color: #fcd34d; text-align: center;">The Synergy Pipeline</h3>
+                    <p style="font-size: 16px; text-align: center;">While distinct, they are increasingly integrated in modern organizations.</p>
+                    
+                    <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; margin-top: 15px;">
+                        <div style="font-size: 15px; margin-bottom: 10px;">
+                            <strong>1. BI Provides the Foundation:</strong><br> BI systems aggregate the data and reporting frameworks that fuel in-depth DS analysis.
+                        </div>
+                        <div style="text-align: center; color: #fcd34d;">↓</div>
+                        <div style="font-size: 15px; margin-top: 10px;">
+                            <strong>2. DS Enhances the Output:</strong><br> Insights and predictive models from data scientists are fed back into BI dashboards for stakeholders.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="fragment" style="text-align: center; margin-top: 20px;">
+                
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Metro College of Technology</div><div class="sub">Section 7</div></div>
+            </div>
+            
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:80%; text-align:center;">
+                <h1 style="font-size: 65px; margin-bottom: 20px; color: var(--accent);">The Future Scope of<br>Data Science</h1>
+                <p style="font-size: 24px; color: var(--muted); max-width: 800px;">Why the demand for data professionals is growing exponentially and how the field is evolving.</p>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Future Scope</div><div class="sub">The Data Avalanche</div></div>
+              <span class="pill">Challenge & Opportunity</span>
+            </div>
+            
+            <h2>The Data Avalanche</h2>
+            
+            <div class="grid-2" style="margin-top: 30px; align-items: stretch;">
+                <div class="card fragment" style="border-top: 6px solid #0284c7; background: rgba(2,132,199,0.05); display: flex; flex-direction: column;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">📈</div>
+                    <h3 style="margin-top:0; color: #0284c7;">1. Incline in Data Growth</h3>
+                    <p style="font-size: 16px;">Data is generated by everyone on a daily basis, with and without our notice.</p>
+                    <ul style="font-size: 16px; padding-left: 20px; margin-top: auto;">
+                        <li>Our daily interaction with data will only keep increasing.</li>
+                        <li>Global data volume is expanding at <strong>lightning speed</strong>.</li>
+                        <li><strong>The Result:</strong> Demand for data scientists will be crucial to help enterprises manage this surge.</li>
+                    </ul>
+                </div>
+
+                <div class="card fragment" style="border-top: 6px solid #f59e0b; background: rgba(245,158,11,0.05); display: flex; flex-direction: column;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">🤷‍♂️</div>
+                    <h3 style="margin-top:0; color: #d97706;">2. Inability to Handle Data</h3>
+                    <p style="font-size: 16px;">Businesses regularly collect transaction and website data, but face a common challenge: <strong>analyzing and categorizing it</strong>.</p>
+                    <ul style="font-size: 16px; padding-left: 20px; margin-top: auto;">
+                        <li>Unmanaged data creates corporate mayhem.</li>
+                        <li>The Data Scientist becomes the <strong>savior</strong> in this situation.</li>
+                        <li><strong>The Result:</strong> Proper and efficient handling translates directly to increased productivity and progress.</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="fragment" style="text-align: center; margin-top: 20px;">
+                
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Future Scope</div><div class="sub">Governance & Evolution</div></div>
+              <span class="pill">Industry Maturity</span>
+            </div>
+            
+            <h2>Evolution & Governance</h2>
+            
+            <div class="grid-2" style="margin-top: 30px; align-items: stretch;">
+                <div class="card fragment" style="border-top: 6px solid #10b981; background: rgba(16,185,129,0.05); display: flex; flex-direction: column;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">🛡️</div>
+                    <h3 style="margin-top:0; color: #059669;">3. Revised Data Privacy</h3>
+                    <p style="font-size: 16px;">Rising awareness about data breaches has made the public cautious about sharing data. Companies can no longer afford to be careless.</p>
+                    <ul style="font-size: 16px; padding-left: 20px; margin-top: auto;">
+                        <li>Landmark regulations (like the 2020 California act and GDPR) enforce privacy.</li>
+                        <li><strong>The Result:</strong> A strict co-dependency between companies and data scientists to store and process data responsibly.</li>
+                    </ul>
+                </div>
+
+                <div class="card fragment" style="border-top: 6px solid var(--accent); background: rgba(22,163,74,0.05); display: flex; flex-direction: column;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">🧬</div>
+                    <h3 style="margin-top:0; color: var(--accent);">4. Constantly Evolving Field</h3>
+                    <p style="font-size: 16px;">Career areas without growth potential run the risk of stagnating. Data science is undergoing rapid developments.</p>
+                    <ul style="font-size: 16px; padding-left: 20px; margin-top: auto;">
+                        <li>Promises abundant future opportunities.</li>
+                        <li>Job roles are becoming highly <strong>specific and specialized</strong>.</li>
+                        <li><strong>The Result:</strong> Professionals can exploit these niches and pursue the specializations that suit them best.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="fragment" style="text-align: center; margin-top: 20px;">
+                
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Metro College of Technology</div><div class="sub">Section 8</div></div>
+            </div>
+            
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:80%; text-align:center;">
+                <h1 style="font-size: 65px; margin-bottom: 20px; color: var(--accent);">Real-World Applications</h1>
+                <p style="font-size: 24px; color: var(--muted); max-width: 800px;">Exploring the diverse domains where Data Science is leaving a massive footprint and solving complex problems.</p>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Applications</div><div class="sub">Finance & Medical</div></div>
+              <span class="pill">Life & Wealth</span>
+            </div>
+            
+            <h2>Financial & Medical Innovations</h2>
+            <p>Data science revolutionizes how we manage wealth and human health.</p>
+            
+            <div class="grid-3" style="margin-top: 30px; align-items: stretch;">
+                <div class="card fragment" style="border-top: 6px solid #f59e0b; display: flex; flex-direction: column;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">💳</div>
+                    <h3 style="margin-top:0; color: #d97706;">1. Fraud Risk Detection</h3>
+                    <p style="font-size: 15px; flex-grow: 1;">The earliest application of data science. Finance companies were fed up with bad debts and losses.</p>
+                    <ul style="font-size: 14px; padding-left: 15px; color: var(--muted);">
+                        <li>Customer profiling & past expenditures.</li>
+                        <li>Analyzes risk & default probabilities.</li>
+                        <li>Pushes products based on purchasing power.</li>
+                    </ul>
+                </div>
+
+                <div class="card fragment" style="border-top: 6px solid #10b981; display: flex; flex-direction: column;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">🩺</div>
+                    <h3 style="margin-top:0; color: #059669;">2. Healthcare</h3>
+                    <p style="font-size: 15px; flex-grow: 1;">Every human body generates ~2 Terabytes of data per day (brain activity, heart rate, etc.).</p>
+                    <ul style="font-size: 14px; padding-left: 15px; color: var(--muted);">
+                        <li>Detects disease symptoms at very early stages.</li>
+                        <li>Remote patient monitoring.</li>
+                        <li>Records and analyzes life-saving vitals.</li>
+                    </ul>
+                </div>
+
+                <div class="card fragment" style="border-top: 6px solid #38bdf8; display: flex; flex-direction: column;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">💊</div>
+                    <h3 style="margin-top:0; color: #0284c7;">3. Drug Development</h3>
+                    <p style="font-size: 15px; flex-grow: 1;">It traditionally takes 12 years and billions of dollars to submit a new drug.</p>
+                    <ul style="font-size: 14px; padding-left: 15px; color: var(--muted);">
+                        <li>Simplifies screening of drug compounds.</li>
+                        <li>Forecasts compound behavior using math modeling.</li>
+                        <li>Replaces physical lab experiments with simulations.</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Applications</div><div class="sub">The Web Ecosystem</div></div>
+              <span class="pill">Interactive: Click Cards</span>
+            </div>
+            
+            <h2>The Digital Experience</h2>
+            <p>From the moment you open a browser, Data Science algorithms are shaping your digital life.</p>
+            
+            <div class="grid-3" style="margin-top: 30px;">
+                <div class="flip-card fragment" onclick="this.classList.toggle('flipped')" style="height: 320px;">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front" style="flex-direction: column; border-left-color: #ef4444;">
+                            <div style="font-size: 40px; margin-bottom: 10px;">🔍</div>
+                            <h3 style="margin:0 0 10px 0;">4. Internet Search</h3>
+                            <p class="muted" style="font-size: 14px;">Click to reveal</p>
+                        </div>
+                        <div class="flip-card-back" style="flex-direction: column; padding: 20px; text-align: left; align-items: flex-start; background: #dc2626;">
+                            <h4 style="margin:0 0 10px 0; color: white; font-size: 20px;">Internet Search</h4>
+                            <p style="font-size: 14px; font-weight: normal; margin: 0; line-height: 1.5;">Search engines like Google, Bing, and Yahoo use algorithms to deliver the best results in a fraction of a second.<br><br><strong>Scale:</strong> Google processes more than 20 petabytes of data every single day.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flip-card fragment" onclick="this.classList.toggle('flipped')" style="height: 320px;">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front" style="flex-direction: column; border-left-color: #8b5cf6;">
+                            <div style="font-size: 40px; margin-bottom: 10px;">🎯</div>
+                            <h3 style="margin:0 0 10px 0;">5. Targeted Ads</h3>
+                            <p class="muted" style="font-size: 14px;">Click to reveal</p>
+                        </div>
+                        <div class="flip-card-back" style="flex-direction: column; padding: 20px; text-align: left; align-items: flex-start; background: #7c3aed;">
+                            <h4 style="margin:0 0 10px 0; color: white; font-size: 20px;">Targeted Advertising</h4>
+                            <p style="font-size: 14px; font-weight: normal; margin: 0; line-height: 1.5;">The entire digital marketing spectrum is driven by DS.<br><br>Yields much higher Call-Through Rates (CTR) than traditional ads because banners are targeted specifically based on a user's past behavior.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flip-card fragment" onclick="this.classList.toggle('flipped')" style="height: 320px;">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front" style="flex-direction: column; border-left-color: #f59e0b;">
+                            <div style="font-size: 40px; margin-bottom: 10px;">🛒</div>
+                            <h3 style="margin:0 0 10px 0;">6. Recommendations</h3>
+                            <p class="muted" style="font-size: 14px;">Click to reveal</p>
+                        </div>
+                        <div class="flip-card-back" style="flex-direction: column; padding: 20px; text-align: left; align-items: flex-start; background: #d97706;">
+                            <h4 style="margin:0 0 10px 0; color: white; font-size: 20px;">Website Recs</h4>
+                            <p style="font-size: 14px; font-weight: normal; margin: 0; line-height: 1.5;">Ever noticed suggestions about "similar products" on Amazon?<br><br>Algorithms help you find relevant items out of billions of possibilities, drastically improving User Experience and sales.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Applications</div><div class="sub">Logistics & Protection</div></div>
+              <span class="pill">Infrastructure</span>
+            </div>
+            
+            <h2>Aviation & Cyber Security</h2>
+            
+            <div class="grid-2" style="margin-top: 30px;">
+                <div class="card fragment" style="display: flex; flex-direction: column;">
+                    <h3 style="margin-top: 0; color: var(--accent); display: flex; align-items: center; gap: 10px;">✈️ 7. Airlines & Aviation</h3>
+                    <p style="font-size: 16px;">Companies use data to dynamically adjust prices, optimize routes, and carry out preemptive maintenance.</p>
+                    <ul style="font-size: 15px; color: var(--muted); padding-left: 20px; flex-grow: 1;">
+                        <li>Analyzes route distance, altitude, aircraft type, and weather.</li>
+                        <li>Enhances passenger services by grasping how passengers function.</li>
+                    </ul>
+                    <div class="callout" style="background: rgba(22,163,74,0.1); border-left-color: var(--accent-2); margin-top: auto; padding: 12px;">
+                        <strong>Job Impact:</strong> Created >3,000 new DS jobs in 2021 alone.
+                    </div>
+                </div>
+
+                <div class="card fragment" style="display: flex; flex-direction: column;">
+                    <h3 style="margin-top: 0; color: #ef4444; display: flex; align-items: center; gap: 10px;">🛡️ 8. Cyber Security</h3>
+                    <p style="font-size: 16px;">The increase in online transactions has led to a spike in fraudulent activities and cyber threats.</p>
+                    <ul style="font-size: 15px; color: var(--muted); padding-left: 20px; flex-grow: 1;">
+                        <li>Scientific methods for detecting hostile assaults on infrastructure.</li>
+                        <li>Machine Learning incorporates data patterns to create protective algorithms.</li>
+                    </ul>
+                    <div class="callout" style="background: rgba(239,68,68,0.1); border-left-color: #ef4444; margin-top: auto; padding: 12px;">
+                        <strong>Job Impact:</strong> Opened up >5,000 new DS jobs in 2021 alone.
+                    </div>
+                </div>
+            </div>
+            <div class="fragment" style="text-align: center; margin-top: 15px;">
+                
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Metro College of Technology</div><div class="sub">Section 9</div></div>
+            </div>
+            
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:80%; text-align:center;">
+                <h1 style="font-size: 65px; margin-bottom: 20px; color: var(--accent);">Ubiquity of Data &<br>The Data Deluge</h1>
+                <p style="font-size: 24px; color: var(--muted); max-width: 800px;">Exploring the massive growth of enterprise data, the shift to automated analysis, and strategies to manage the overflow.</p>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Ubiquity of Data</div><div class="sub">The Paradigm Shift</div></div>
+              <span class="pill">Evolution</span>
+            </div>
+            
+            <h2>Ubiquity of Data Opportunities</h2>
+            <p>Companies in almost every industry are now focused on exploiting data for competitive advantage.</p>
+            
+            <div class="grid-2" style="margin-top: 20px;">
+                <div>
+                    <h3 style="color: var(--ink); margin-top: 0;">The Evolution of Analysis</h3>
+                    <div class="timeline" style="margin-top: 15px;">
+                        <div class="timeline-item fragment">
+                            <span class="timeline-date" style="background: var(--muted);">The Past</span>
+                            <div class="timeline-content" style="background: white;">
+                                <p style="margin: 0; font-size: 15px;">Firms employed teams to explore datasets <strong>manually</strong>. But the volume and variety of data have far outstripped manual capacity.</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item fragment">
+                            <span class="timeline-date">The Present</span>
+                            <div class="timeline-content" style="border-color: var(--accent);">
+                                <p style="margin: 0; font-size: 15px;">Computers are powerful, networking is ubiquitous, and <strong>algorithms connect datasets</strong> to enable broader, deeper analyses.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 style="color: var(--ink); margin-top: 0;">Widespread Applications</h3>
+                    <div class="card-grid" style="grid-template-columns: 1fr; gap: 10px; margin-top: 15px;">
+                        <div class="info-card fragment" style="padding: 15px; border-left-color: #f59e0b;">
+                            <strong style="color: #d97706;">🛍️ Retail & Marketing</strong>
+                            <span style="font-size: 14px; margin-top: 5px;">Targeted online ads, cross-selling recommendations, and supply-chain management (e.g., Walmart, Amazon).</span>
+                        </div>
+                        <div class="info-card fragment" style="padding: 15px; border-left-color: #10b981;">
+                            <strong style="color: #059669;">🏦 Finance</strong>
+                            <span style="font-size: 14px; margin-top: 5px;">Credit scoring, algorithmic trading, and advanced fraud detection.</span>
+                        </div>
+                        <div class="info-card fragment" style="padding: 15px; border-left-color: #38bdf8;">
+                            <strong style="color: #0284c7;">🤝 Customer Relationship Management (CRM)</strong>
+                            <span style="font-size: 14px; margin-top: 5px;">Analyzing customer behavior to manage attrition and maximize value.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Data Deluge</div><div class="sub">Definition & Drivers</div></div>
+              <span class="pill" style="background: #fee2e2; color: #ef4444; border-color: #ef4444;">Warning: Overflow</span>
+            </div>
+            
+            <h2>What is the Data Deluge?</h2>
+            
+            <div class="grid-2" style="margin-top: 20px;">
+                <div>
+                    <div class="callout fragment" style="background: #fef2f2; border-left-color: #ef4444; padding: 25px;">
+                        <h3 style="margin-top:0; color: #dc2626;">The Definition</h3>
+                        <p style="margin:0; font-size: 18px;">When the amount of new data generated surpasses the limit of institutions to manage it, making it difficult for analysts to deduce useful conclusions.</p>
+                    </div>
+                    
+                    <h3 class="fragment" style="margin-top: 20px;">The Golden Age of Data</h3>
+                    <p class="fragment" style="font-size: 16px;">Vast amounts of data will drive better business decisions, <em>but only if you have a comprehensive management plan in place.</em></p>
+                    <div class="fragment" style="text-align: center; margin-top: 15px;">
+                        
+                    </div>
+                </div>
+                
+                <div>
+                    <div class="card fragment" style="border-top: 6px solid #0284c7;">
+                        <div style="font-size: 48px; font-weight: 900; color: #0284c7; text-align: center; margin-bottom: 10px;">+60%</div>
+                        <p style="text-align: center; font-size: 16px; color: var(--muted); margin-top: 0; margin-bottom: 20px;">Enterprise Data Growth Per Year (IDC)</p>
+                        
+                        <h4 style="margin-bottom: 10px;">What's driving the surge?</h4>
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <div class="info-card" style="padding: 10px 15px;">📱 Smartphones & Cloud Apps</div>
+                            <div class="info-card" style="padding: 10px 15px;">🌐 Billions of IoT Devices</div>
+                            <div class="info-card" style="padding: 10px 15px;">🔍 Google Trends & Social Media</div>
+                            <div class="info-card" style="padding: 10px 15px;">🛰️ Satellite Imagery</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Interactive</div><div class="sub">Discussion</div></div>
+            </div>
+            
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:85%; text-align:center;">
+                <div style="font-size: 80px; margin-bottom: 20px;">🧠</div>
+                <h3 style="color: var(--muted); margin-bottom: 10px; letter-spacing: 2px; text-transform: uppercase;">Class Exercise</h3>
+                <h1 style="font-size: 60px; line-height: 1.2; margin: 0; color: var(--ink);">
+                    How do we successfully counter the <span style="color: #ef4444;">Data Deluge</span>?
+                </h1>
+                <p style="font-size: 24px; color: var(--muted); margin-top: 30px;">Discuss potential strategies before revealing the answers.</p>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+<section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">FYI (Additional Reading)</div><div class="sub">Solutions - Infrastructure</div></div>
+              <span class="pill">Interactive: Click Tabs</span>
+            </div>
+            
+            <h2>Countering the Deluge: Structural Shifts</h2>
+            <p>Before analyzing data, we must fix how it is stored and shared across the organization's infrastructure.</p>
+            
+            <div class="tool-tabs" style="height: 380px;">
+                <div class="tab-list">
+                    <button class="tab-btn active" onclick="showToolTab(this, 'tab-hoard')">1. Stop Hoarding <span>→</span></button>
+                    <button class="tab-btn" onclick="showToolTab(this, 'tab-silos')">2. Dismantle Silos <span>→</span></button>
+                </div>
+
+                <div class="tab-content-area">
+                    
+                    <div id="tab-hoard" class="tab-panel active">
+                        <h3 style="margin-top:0; border-bottom: 2px solid var(--soft); padding-bottom:10px; color: #ef4444;">Don't be a data hoarder</h3>
+                        <ul style="font-size: 16px; padding-left: 20px;">
+                            <li style="margin-bottom: 12px;"><strong>The Problem:</strong> Most companies collect data for years without a coherent plan, assuming they'll "do something smart with it later."</li>
+                            <li style="margin-bottom: 12px;"><strong>The Risk:</strong> Large pools of data with no indication of origin/purpose lead to wildly wrong interpretations.</li>
+                            <li><strong>The Cost:</strong> Storage may seem infinite in the cloud, but processing is expensive. Without efficient resources, firms hit a financial breaking point.</li>
+                        </ul>
+                    </div>
+
+                    <div id="tab-silos" class="tab-panel">
+                        <h3 style="margin-top:0; border-bottom: 2px solid var(--soft); padding-bottom:10px; color: #f59e0b;">Dismantle your data silos</h3>
+                        <ul style="font-size: 16px; padding-left: 20px;">
+                            <li style="margin-bottom: 12px;"><strong>Ecosystem Mapping:</strong> Figure out where data resides, how it enters/leaves, and who manages it.</li>
+                            <li style="margin-bottom: 12px;"><strong>Identify Blockers:</strong> Are silos created because data is stuck in a specific SQL DB? Is there a hidden Data Lake?</li>
+                            <li><strong>Cultural Shift:</strong> Silos often happen passively ("If there's no benefit to my group, someone else needs to pay for it"). Break down these barriers.</li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="fragment" style="text-align: center; margin-top: 10px;">
+                
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+<section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">FYI (Additional Reading)</div><div class="sub">Solutions - People</div></div>
+              <span class="pill">Interactive: Click Tabs</span>
+            </div>
+            
+            <h2>Countering the Deluge: Cultural Shifts</h2>
+            <p>Infrastructure is useless without a team that champions data accessibility and strict governance.</p>
+            
+            <div class="tool-tabs" style="height: 380px;">
+                <div class="tab-list">
+                    <button class="tab-btn active" onclick="showToolTab(this, 'tab-mindset')">3. Data Mindset <span>→</span></button>
+                    <button class="tab-btn" onclick="showToolTab(this, 'tab-governance')">4. Strong Governance <span>→</span></button>
+                </div>
+
+                <div class="tab-content-area">
+
+                    <div id="tab-mindset" class="tab-panel active">
+                        <h3 style="margin-top:0; border-bottom: 2px solid var(--soft); padding-bottom:10px; color: #10b981;">Foster a data-centric mindset</h3>
+                        <ul style="font-size: 16px; padding-left: 20px;">
+                            <li style="margin-bottom: 12px;"><strong>Universal Accessibility:</strong> High-quality data must be readily available to the right tools and the right people across all departments.</li>
+                            <li style="margin-bottom: 12px;"><strong>Proactive vs. Passive:</strong> Move away from passive data collection toward proactive, strategic usage.</li>
+                            <li><strong>Democratization:</strong> Empower non-technical staff with user-friendly dashboards so data isn't locked behind the IT department.</li>
+                        </ul>
+                    </div>
+
+                    <div id="tab-governance" class="tab-panel">
+                        <h3 style="margin-top:0; border-bottom: 2px solid var(--soft); padding-bottom:10px; color: #6366f1;">Establish top-down leadership</h3>
+                        <ul style="font-size: 16px; padding-left: 20px;">
+                            <li style="margin-bottom: 12px;"><strong>Strict Governance:</strong> Massive scale requires rigid data governance to ensure information is integrated, accurately cataloged, and trustworthy.</li>
+                            <li style="margin-bottom: 12px;"><strong>The Chief Data Officer:</strong> Many organizations are hiring CDOs to reach across isolated business units and coordinate a unified data strategy.</li>
+                            <li><strong>Quality Control:</strong> Establishing clear protocols for who can alter, delete, or define specific datasets.</li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="fragment" style="text-align: center; margin-top: 10px;">
+                
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Metro College of Technology</div><div class="sub">Section 10</div></div>
+            </div>
+            
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; height:80%; text-align:center;">
+                <h1 style="font-size: 65px; margin-bottom: 20px; color: var(--accent);">Analytical Architecture &<br>Data Ecosystem Roles</h1>
+                <p style="font-size: 24px; color: var(--muted); max-width: 800px;">Designing the systems to manage data and defining the specific professionals required to utilize them.</p>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Analytical Architecture</div><div class="sub">Definition</div></div>
+              <span class="pill">Infrastructure</span>
+            </div>
+            
+            <h2>Current Analytical Architecture</h2>
+            <p>An umbrella term for the systems, protocols, and technology used to collect, store, and analyze data streams.</p>
+            
+            <div class="grid-2" style="margin-top: 20px; align-items: stretch;">
+                <div class="card fragment" style="border-top: 6px solid #38bdf8;">
+                    <h3 style="margin-top:0; color: #0284c7;">The Foundation</h3>
+                    <ul style="font-size: 16px; padding-left: 20px;">
+                        <li style="margin-bottom: 10px;"><strong>Hardware:</strong> How the data will be physically stored.</li>
+                        <li style="margin-bottom: 10px;"><strong>Software:</strong> What will be used to manage and process it.</li>
+                        <li><strong>The Goal:</strong> Plan the optimal flow for data from capture to analysis, establishing how data is organized, who accesses it, and query speed.</li>
+                    </ul>
+                </div>
+                
+                <div class="card fragment" style="border-top: 6px solid #ef4444; background: rgba(239,68,68,0.05);">
+                    <h3 style="margin-top:0; color: #dc2626;">Why Not Spreadsheets?</h3>
+                    <p style="font-size: 16px;">Data analytics is becoming a central part of operations for <em>every</em> organization.</p>
+                    <p style="font-size: 16px;">The fast-rising amount of data collected from multiple touchpoints means that using a simple spreadsheet is <strong>quickly becoming unfeasible</strong>.</p>
+                </div>
+            </div>
+
+            <div class="fragment" style="text-align: center; margin-top: 15px;">
+                
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Analytical Architecture</div><div class="sub">Storage & Access</div></div>
+              <span class="pill">Interactive: Click Cards</span>
+            </div>
+            
+            <h2>Storage Structures & Access</h2>
+            <p>Organizations must choose how to structure their data and how users will interact with it.</p>
+            
+            <div class="grid-3" style="margin-top: 30px;">
+                <div class="flip-card fragment" onclick="this.classList.toggle('flipped')" style="height: 250px;">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front" style="flex-direction: column; border-left-color: #f59e0b;">
+                            <div style="font-size: 40px; margin-bottom: 10px;">🏢</div>
+                            <h3 style="margin:0;">Data Warehouses</h3>
+                        </div>
+                        <div class="flip-card-back" style="flex-direction: column; padding: 20px; background: #d97706;">
+                            <h4 style="margin:0 0 10px 0; color: white;">Data Warehouses</h4>
+                            <p style="font-size: 14px; font-weight: normal; margin: 0;">A highly structured approach. Data is cleaned, categorized, and easily sorted for specific, reliable access later.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flip-card fragment" onclick="this.classList.toggle('flipped')" style="height: 250px;">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front" style="flex-direction: column; border-left-color: #10b981;">
+                            <div style="font-size: 40px; margin-bottom: 10px;">🌊</div>
+                            <h3 style="margin:0;">Data Lakes</h3>
+                        </div>
+                        <div class="flip-card-back" style="flex-direction: column; padding: 20px; background: #059669;">
+                            <h4 style="margin:0 0 10px 0; color: white;">Data Lakes</h4>
+                            <p style="font-size: 14px; font-weight: normal; margin: 0;">A vast pool of raw data, the purpose for which is not yet defined. Highly flexible but requires more management to prevent a "data swamp."</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flip-card fragment" onclick="this.classList.toggle('flipped')" style="height: 250px;">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front" style="flex-direction: column; border-left-color: #c084fc;">
+                            <div style="font-size: 40px; margin-bottom: 10px;">🗣️</div>
+                            <h3 style="margin:0;">User Access</h3>
+                        </div>
+                        <div class="flip-card-back" style="flex-direction: column; padding: 20px; background: #9333ea;">
+                            <h4 style="margin:0 0 10px 0; color: white;">User Access Tools</h4>
+                            <p style="font-size: 14px; font-weight: normal; margin: 0;">Implementing Natural Language Processing (NLP) and ad-hoc analytics capabilities to reduce reliance on specialized workers.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+<section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Data Ecosystem</div><div class="sub">Technical Roles - Part 1</div></div>
+              <span class="pill">Interactive: Click Tabs</span>
+            </div>
+            
+            <h2>Key Roles: Building & Interpreting</h2>
+            <p>First, we build the infrastructure. Then, we interpret the historical trends to understand our current business.</p>
+            
+            <div class="tool-tabs" style="height: 380px;">
+                <div class="tab-list">
+                    <button class="tab-btn active" onclick="showToolTab(this, 'tab-engineer')">Data Engineer <span>→</span></button>
+                    <button class="tab-btn" onclick="showToolTab(this, 'tab-analyst')">Data Analyst <span>→</span></button>
+                </div>
+
+                <div class="tab-content-area">
+                    
+                    <div id="tab-engineer" class="tab-panel active">
+                        <h3 style="margin-top:0; border-bottom: 2px solid var(--soft); padding-bottom:10px; color: #f59e0b;">Data Engineer (The Builder)</h3>
+                        <p style="font-weight: bold; margin-bottom: 5px;">Objective:</p>
+                        <p style="font-size: 15px; margin-top: 0;">Ensure data flows smoothly from source to database to analytics without loss. They create the foundation.</p>
+                        <ul style="font-size: 15px; padding-left: 20px;">
+                            <li><strong>Role:</strong> Design, construct, and maintain the infrastructure/architecture for big data.</li>
+                            <li><strong>Skills:</strong> SQL/NoSQL databases, ETL (Extract, Transform, Load), Hadoop, Spark, Java, Python.</li>
+                        </ul>
+                    </div>
+
+                    <div id="tab-analyst" class="tab-panel">
+                        <h3 style="margin-top:0; border-bottom: 2px solid var(--soft); padding-bottom:10px; color: #0284c7;">Data Analyst (The Interpreter)</h3>
+                        <p style="font-weight: bold; margin-bottom: 5px;">Objective:</p>
+                        <p style="font-size: 15px; margin-top: 0;">Provide actionable insights to other departments to inform current business strategies.</p>
+                        <ul style="font-size: 15px; padding-left: 20px;">
+                            <li><strong>Role:</strong> Interprets data and turns it into information. Looks for meaningful historical trends and patterns.</li>
+                            <li><strong>Skills:</strong> Statistical software, Tableau/Power BI, SQL, Excel, basic statistical analysis.</li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="fragment" style="text-align: center; margin-top: 10px;">
+                
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">Data Ecosystem</div><div class="sub">Business Roles</div></div>
+              <span class="pill">The Bridge</span>
+            </div>
+            
+            <h2>The Business Analyst (BA)</h2>
+            <p>A BA plays a crucial role in bridging the gap between IT and the Business side.</p>
+            
+            <div class="grid-2" style="margin-top: 20px; align-items: center;">
+                <div class="card fragment" style="padding: 25px;">
+                    <h3 style="margin-top:0; color: var(--ink);">Primary Role</h3>
+                    <ul style="font-size: 15px; padding-left: 20px; color: var(--muted);">
+                        <li>Understand business needs and assess the impact of changes.</li>
+                        <li>Capture, analyze, and document requirements.</li>
+                        <li>Communicate requirements to relevant IT/data parties.</li>
+                        <li><strong>Objective:</strong> Optimize and improve business operations, reduce costs, and enhance quality.</li>
+                    </ul>
+                </div>
+                
+                <div class="fragment" style="text-align: center;">
+                    
+                </div>
+            </div>
+
+            <div class="callout fragment" style="background: rgba(147,51,234,0.05); border-left-color: #9333ea; margin-top: 20px;">
+                <h3 style="margin-top:0; color: #9333ea;">How do BAs differ from Data Roles?</h3>
+                <p style="margin:0; font-size: 16px;">Their work is <strong>less technical</strong> and highly focused on the business implications of data. They apply data findings to solve specific challenges rather than just interpreting the math. They are the translation layer between business requirements and technical specifications.</p>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        <section class="slide">
+            <div class="slide-top">
+              <div class="meta"><div class="course">The Business Analyst</div><div class="sub">Skillset & Software</div></div>
+              <span class="pill">Requirements</span>
+            </div>
+            
+            <h2>BA Skills & Software Tools</h2>
+            
+            <div class="grid-2" style="margin-top: 20px;">
+                <div>
+                    <h3 style="color: var(--ink); margin-top: 0;">Core Competencies</h3>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        <div class="info-card fragment" style="padding: 10px 15px; font-size: 15px;">🗣️ <strong>Communication:</strong> Articulate findings and bridge technical/business domains.</div>
+                        <div class="info-card fragment" style="padding: 10px 15px; font-size: 15px;">🧩 <strong>Problem-Solving:</strong> Devise actionable solutions to identified business flaws.</div>
+                        <div class="info-card fragment" style="padding: 10px 15px; font-size: 15px;">🏢 <strong>Domain Knowledge:</strong> Deep understanding of the specific business nuances.</div>
+                        <div class="info-card fragment" style="padding: 10px 15px; font-size: 15px;">💻 <strong>Technical Basics:</strong> Project management and basic SQL manipulation.</div>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 style="color: var(--ink); margin-top: 0;">Software Toolkit</h3>
+                    <div class="card-grid" style="grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 0;">
+                        <div class="card fragment" style="padding: 10px;">
+                            <strong style="color: var(--accent); font-size: 14px;">1. Data & Viz</strong>
+                            <div style="font-size: 13px; color: var(--muted);">Excel, Tableau, Power BI, Google Analytics</div>
+                        </div>
+                        <div class="card fragment" style="padding: 10px;">
+                            <strong style="color: #0284c7; font-size: 14px;">2. Project Mgmt</strong>
+                            <div style="font-size: 13px; color: var(--muted);">JIRA, Trello, MS Project, Slack, Teams</div>
+                        </div>
+                        <div class="card fragment" style="padding: 10px;">
+                            <strong style="color: #f59e0b; font-size: 14px;">3. Process Modeling</strong>
+                            <div style="font-size: 13px; color: var(--muted);">MS Visio, Lucidchart, Confluence</div>
+                        </div>
+                        <div class="card fragment" style="padding: 10px;">
+                            <strong style="color: #ef4444; font-size: 14px;">4. CRM / ERP</strong>
+                            <div style="font-size: 13px; color: var(--muted);">Salesforce, Oracle ERP, SAP ERP</div>
+                        </div>
+                        <div class="card fragment" style="padding: 10px; grid-column: span 2;">
+                            <strong style="color: #9333ea; font-size: 14px;">5. Requirements Mgmt & BI</strong>
+                            <div style="font-size: 13px; color: var(--muted);">SQL, Rational RequisitePro, Axure RP</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="slide-footer"><div class="muted">Metro College of Technology</div><div class="slide-no" data-slide-no></div></div>
+        </section>
+        
+        </div>
+    </div>
+  </div>
+
+  <div class="controls" aria-label="Presentation controls">
+    <button class="iconbtn" id="prevBtn" onclick="go(-1)" aria-label="Previous slide" title="Previous (←)">
+      <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <button class="iconbtn" id="nextBtn" onclick="go(1)" aria-label="Next slide" title="Next (→ / Space)">
+      <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
+    </button>
+    <button class="iconbtn" onclick="openOverview()" title="Slide Overview (O)">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+    </button>
+    <button class="iconbtn" onclick="toggleTimer()" title="Study Timer (T)">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5"/><path d="M8.5 3h7"/><path d="M12 3v2"/></svg>
+    </button>
+    <button class="iconbtn" id="fsBtn" onclick="toggleFullScreen()" aria-label="Toggle fullscreen" title="Fullscreen (F)">
+      <svg viewBox="0 0 24 24">
+        <path d="M8 3H5a2 2 0 0 0-2 2v3"/>
+        <path d="M16 3h3a2 2 0 0 1 2 2v3"/>
+        <path d="M8 21H5a2 2 0 0 1-2-2v-3"/>
+        <path d="M16 21h3a2 2 0 0 0 2-2v-3"/>
+      </svg>
+    </button>
+    <button class="iconbtn help-btn" onclick="openShortcuts()" title="Keyboard Shortcuts (?)">?</button>
+  </div>
+
+  <script>
+    // --- CORE ENGINE ---
+    const slides = Array.from(document.querySelectorAll(".slide"));
+    const progressBar = document.getElementById("progress-bar");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+
+    let current = 0;
+
+    // Cursor Blink Keyframes for terminals
+    const styleSheet = document.createElement("style");
+    styleSheet.innerText = `@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }`;
+    document.head.appendChild(styleSheet);
+
+    // SCALING LOGIC
+    function applyScale(){
+      const pad = 24;
+      const w = window.innerWidth - pad*2;
+      const h = window.innerHeight - pad*2;
+      const baseW = 1600;
+      const baseH = 900;
+      const s = Math.min(w/baseW, h/baseH);
+      document.documentElement.style.setProperty('--scale', String(Math.max(0.3, Math.min(s, 1.5))));
+    }
+
+    // UPDATE UI
+    function updateSlideNumbers(){
+      slides.forEach((s, i) => {
+        const holder = s.querySelector("[data-slide-no]");
+        if (holder) holder.textContent = `${i + 1} / ${slides.length}`;
+      });
+    }
+
+    function updateProgress(){
+      progressBar.style.width = ((current + 1) / slides.length) * 100 + "%";
+      // Update section label
+      const slide = slides[current];
+      const course = slide.querySelector('.meta .course');
+      const sub = slide.querySelector('.meta .sub');
+      const label = document.getElementById('section-label');
+      if (label && course) {
+        label.textContent = sub ? `${course.textContent}  ›  ${sub.textContent}` : course.textContent;
+      }
+    }
+
+    function updateUI(){
+      slides.forEach(s => s.classList.remove("active"));
+      slides[current].classList.add("active");
+      
+      // Reset animations
+      stopConfetti();
+      const flippedCards = slides[current].querySelectorAll('.flip-card.flipped');
+      flippedCards.forEach(c => c.classList.remove('flipped'));
+
+      updateProgress();
+      prevBtn.disabled = current === 0;
+      nextBtn.disabled = current === slides.length - 1;
+
+      // Update overview highlight
+      document.querySelectorAll('.overview-thumb').forEach((t,i) => {
+        t.classList.toggle('current', i === current);
+      });
+
+      if(window.MathJax) MathJax.typesetPromise();
+    }
+
+    function go(dir){
+      const currentSlide = slides[current];
+
+      // Handle interactive fragments
+      if (dir === 1) {
+        const unrevealed = currentSlide.querySelectorAll('.fragment:not(.visible)');
+        if (unrevealed.length > 0) {
+          unrevealed[0].classList.add('visible');
+          return; 
+        }
+      }
+
+      if (dir === -1) {
+        const revealed = currentSlide.querySelectorAll('.fragment.visible');
+        if (revealed.length > 0) {
+          revealed[revealed.length - 1].classList.remove('visible');
+          return; 
+        }
+      }
+
+      const nextIndex = current + dir;
+      if(nextIndex < 0 || nextIndex >= slides.length) return;
+      current = nextIndex;
+      updateUI();
+    }
+
+    function goToSlide(index) {
+      current = index;
+      updateUI();
+    }
+
+    function toggleFullScreen(){
+      if(!document.fullscreenElement){
+        document.documentElement.requestFullscreen?.();
+      }else{
+        document.exitFullscreen?.();
+      }
+    }
+
+    // =============================================
+    // OVERVIEW PANEL
+    // =============================================
+    function buildOverview() {
+      const grid = document.getElementById('overview-grid');
+      slides.forEach((slide, i) => {
+        const course = slide.querySelector('.meta .course')?.textContent || 'Slide';
+        const sub = slide.querySelector('.meta .sub')?.textContent || '';
+        const h1 = slide.querySelector('h1')?.textContent || '';
+        const h2 = slide.querySelector('h2')?.textContent || '';
+        const title = h2 || h1 || 'Section';
+
+        const thumb = document.createElement('div');
+        thumb.className = 'overview-thumb' + (i === current ? ' current' : '');
+        thumb.innerHTML = `
+          <div class="overview-thumb-header">${course}</div>
+          <div class="overview-thumb-body">
+            <div class="overview-thumb-title">${title}</div>
+            <div class="overview-thumb-sub">${sub}</div>
+          </div>
+          <div class="overview-thumb-num">${i + 1}/${slides.length}</div>`;
+        thumb.onclick = () => { goToSlide(i); closeOverview(); };
+        grid.appendChild(thumb);
+      });
+    }
+
+    function openOverview() {
+      // Rebuild to update current
+      const grid = document.getElementById('overview-grid');
+      grid.innerHTML = '';
+      buildOverview();
+      document.getElementById('overview-panel').classList.add('open');
+    }
+
+    function closeOverview() {
+      document.getElementById('overview-panel').classList.remove('open');
+    }
+
+    // =============================================
+    // SHORTCUTS MODAL
+    // =============================================
+    function openShortcuts() { document.getElementById('shortcuts-modal').classList.add('open'); }
+    function closeShortcuts() { document.getElementById('shortcuts-modal').classList.remove('open'); }
+
+    // =============================================
+    // SCORE TRACKER
+    // =============================================
+    let scoreCorrect = 0;
+    let scoreTotal = 0;
+
+    function updateScoreBadge() {
+      const badge = document.getElementById('score-badge');
+      const text = document.getElementById('score-text');
+      text.textContent = `Score: ${scoreCorrect}/${scoreTotal}`;
+      badge.classList.add('pop');
+      setTimeout(() => badge.classList.remove('pop'), 400);
+    }
+
+    window.quizAnswer = function(btn, isCorrect) {
+      // Prevent double-counting
+      if (btn.dataset.answered) return;
+      const questionCard = btn.closest('.card, .quiz-question');
+      if (!questionCard) return;
+
+      // Mark all buttons in this question
+      const buttons = questionCard.querySelectorAll('.mini-btn');
+      buttons.forEach(b => {
+        b.dataset.answered = 'true';
+        b.style.opacity = '0.6';
+        b.style.cursor = 'not-allowed';
+      });
+      btn.style.opacity = '1';
+
+      scoreTotal++;
+      if (isCorrect) {
+        scoreCorrect++;
+        btn.style.background = '#10b981';
+        btn.style.borderColor = '#10b981';
+        btn.style.color = 'white';
+        btn.innerHTML = btn.innerHTML + ' ✅';
+        fireConfetti();
+      } else {
+        btn.style.background = '#ef4444';
+        btn.style.borderColor = '#ef4444';
+        btn.style.color = 'white';
+        btn.innerHTML = btn.innerHTML + ' ❌';
+        // Show correct answer hint
+        buttons.forEach(b => {
+          if (b.dataset.correct === 'true') {
+            b.style.background = '#10b981';
+            b.style.borderColor = '#10b981';
+            b.style.color = 'white';
+            b.style.opacity = '1';
+            b.innerHTML = b.innerHTML + ' ← Correct';
+          }
+        });
+      }
+      updateScoreBadge();
+    };
+
+    window.resetQuiz = function(btn) {
+      const card = btn.closest('.card, .quiz-question');
+      const buttons = card.querySelectorAll('.mini-btn');
+      buttons.forEach(b => {
+        b.removeAttribute('data-answered');
+        b.style.background = '';
+        b.style.borderColor = '';
+        b.style.color = '';
+        b.style.opacity = '';
+        b.style.cursor = '';
+        // Restore original text by stripping appended markers
+        b.textContent = b.textContent.replace(/ [✅❌].*$/, '').replace(' ← Correct', '').trim();
+      });
+    };
+
+    // =============================================
+    // STUDY TIMER
+    // =============================================
+    const TIMER_DURATIONS = [60, 120, 180, 300, 600]; // 1,2,3,5,10 min
+    let timerDurIdx = 3; // default 5 min
+    let timerSeconds = TIMER_DURATIONS[timerDurIdx];
+    let timerInterval = null;
+    let timerRunning = false;
+
+    function formatTime(s) {
+      const m = Math.floor(s / 60);
+      const sec = s % 60;
+      return `${m}:${sec.toString().padStart(2,'0')}`;
+    }
+
+    function updateTimerDisplay() {
+      document.getElementById('timer-display').textContent = formatTime(timerSeconds);
+      const widget = document.getElementById('timer-widget');
+      widget.classList.toggle('running', timerRunning && timerSeconds > 10);
+      widget.classList.toggle('warn', timerRunning && timerSeconds <= 10);
+    }
+
+    function toggleTimer() {
+      const widget = document.getElementById('timer-widget');
+      widget.style.display = 'flex';
+      if (timerRunning) {
+        clearInterval(timerInterval);
+        timerRunning = false;
+      } else {
+        timerRunning = true;
+        timerInterval = setInterval(() => {
+          timerSeconds--;
+          updateTimerDisplay();
+          if (timerSeconds <= 0) {
+            clearInterval(timerInterval);
+            timerRunning = false;
+            timerSeconds = 0;
+            updateTimerDisplay();
+            // Flash done
+            const widget = document.getElementById('timer-widget');
+            widget.style.color = '#ef4444';
+            setTimeout(() => { widget.style.color = ''; }, 2000);
+          }
+        }, 1000);
+      }
+      updateTimerDisplay();
+    }
+
+    function cycleTimerDuration() {
+      if (timerRunning) return;
+      timerDurIdx = (timerDurIdx + 1) % TIMER_DURATIONS.length;
+      timerSeconds = TIMER_DURATIONS[timerDurIdx];
+      updateTimerDisplay();
+    }
+
+    // Right-click resets timer
+    document.getElementById('timer-widget').addEventListener('contextmenu', e => {
+      e.preventDefault();
+      clearInterval(timerInterval);
+      timerRunning = false;
+      timerSeconds = TIMER_DURATIONS[timerDurIdx];
+      updateTimerDisplay();
+    });
+
+    document.getElementById('timer-widget').addEventListener('click', (e) => {
+      if (e.target.tagName !== 'BUTTON') toggleTimer();
+    });
+
+    // =============================================
+    // KEYBOARD NAVIGATION & LASER POINTER
+    // =============================================
+    document.addEventListener("keydown", (e) => {
+      if (document.getElementById('overview-panel').classList.contains('open')) {
+        if (e.key === 'Escape') closeOverview();
+        return;
+      }
+      if (document.getElementById('shortcuts-modal').classList.contains('open')) {
+        if (e.key === 'Escape') closeShortcuts();
+        return;
+      }
+      if(e.key === "ArrowRight" || e.key === " " || e.key === "Enter"){
+        if (e.key === " ") e.preventDefault();
+        go(1);
+      } else if(e.key === "ArrowLeft"){
+        go(-1);
+      } else if(e.key.toLowerCase() === "f"){
+        toggleFullScreen();
+      } else if(e.key.toLowerCase() === "l"){
+        document.body.classList.toggle('laser-on');
+      } else if(e.key.toLowerCase() === "o"){
+        openOverview();
+      } else if(e.key.toLowerCase() === "t"){
+        toggleTimer();
+      } else if(e.key === "?"){
+        openShortcuts();
+      } else if(e.key === "Escape"){
+        closeOverview();
+        closeShortcuts();
+      }
+    });
+
+    // LASER POINTER TRACKING
+    const laser = document.getElementById('laser');
+    document.addEventListener('mousemove', (e) => {
+      if(document.body.classList.contains('laser-on')) {
+        laser.style.left = e.clientX + 'px';
+        laser.style.top = e.clientY + 'px';
+      }
+    });
+
+    // SWIPE SUPPORT (mobile)
+    let touchStartX = 0;
+    document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+    document.addEventListener('touchend', e => {
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
+    }, { passive: true });
+
+    // =============================================
+    // INTERACTIVE HOMEWORK / FLIP CARD LOGIC
+    // =============================================
+    window.flipCard = function(el) {
+      el.classList.toggle('flipped');
+      const targetGrid = el.closest('#hw-grid');
+      if(targetGrid) {
+          const totalCards = targetGrid.querySelectorAll('.flip-card').length;
+          const flippedCards = targetGrid.querySelectorAll('.flip-card.flipped').length;
+          if (flippedCards === totalCards) {
+            scoreCorrect++;
+            scoreTotal++;
+            updateScoreBadge();
+            fireConfetti();
+          } else {
+            stopConfetti();
+          }
+      }
+    };
+
+    // --- SIMPLE CONFETTI ENGINE ---
+    let confettiAnimationFrame;
+    const canvas = document.getElementById('confetti-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    let confettiActive = false;
+    let confettiTimer = null;
+
+    function fireConfetti() {
+      if (confettiTimer) clearTimeout(confettiTimer);
+      particles = [];
+      confettiActive = true;
+      const colors = ['#16a34a', '#22c55e', '#ffffff', '#e2e8f0', '#ef4444'];
+      for(let i=0; i<150; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height - canvas.height,
+          r: Math.random() * 6 + 2,
+          dx: Math.random() * 4 - 2,
+          dy: Math.random() * 5 + 2,
+          color: colors[Math.floor(Math.random() * colors.length)]
+        });
+      }
+      renderConfetti();
+      confettiTimer = setTimeout(() => { stopConfetti(); }, 10000); 
+    }
+
+    function stopConfetti() {
+      confettiActive = false;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    function renderConfetti() {
+      if (!confettiActive) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.fill();
+        p.x += p.dx;
+        p.y += p.dy;
+        if (p.y > canvas.height) p.y = -20;
+      });
+      requestAnimationFrame(renderConfetti);
+    }
+
+    // =============================================
+    // INIT
+    // =============================================
+    applyScale();
+    window.addEventListener('resize', applyScale);
+    updateSlideNumbers();
+    updateUI();
+    updateTimerDisplay();
+
+    // Show shortcut hint on first load
+    setTimeout(() => {
+      const hint = document.createElement('div');
+      hint.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(15,23,42,.85);color:#e5e7eb;padding:8px 20px;border-radius:999px;font-size:13px;z-index:9999;pointer-events:none;backdrop-filter:blur(8px);transition:opacity 1s;';
+      hint.textContent = '⌨️ Press ? for keyboard shortcuts · O for overview · T for timer';
+      document.body.appendChild(hint);
+      setTimeout(() => { hint.style.opacity = '0'; setTimeout(() => hint.remove(), 1000); }, 4000);
+    }, 800);
+  </script>
+  
+</body>
+</html>
